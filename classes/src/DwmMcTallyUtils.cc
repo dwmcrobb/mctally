@@ -51,6 +51,35 @@ namespace Dwm {
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
+    static std::string GetInstalledVersionFreeBSD(std::string pkgname)
+    {
+      std::string  rc;
+      std::string  cmd("pkg info -I " + pkgname + " 2>/dev/null");
+      FILE  *p = popen(cmd.c_str(), "r");
+      if (p) {
+        char  buf[1024] = { 0 };
+        size_t  bytesRead = fread(buf, 1, 1024, p);
+        if (bytesRead > 0) {
+          std::string  bufstr(buf);
+          auto  idx = bufstr.find_first_of(' ');
+          if ((std::string::npos != idx)
+              && ((idx + 1) < bufstr.size())) {
+            bufstr = bufstr.substr(0, idx + 1);
+          }
+          idx = bufstr.find_last_of('-');
+          if ((std::string::npos != idx)
+              && ((idx + 1) < bufstr.size())) {
+            rc = bufstr.substr(idx + 1, bufstr.size() - idx);
+          }
+        }
+        pclose(p);
+      }
+      return rc;
+    }
+    
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
     static std::string GetInstalledVersionMacOS(std::string pkgname)
     {
       std::string  rc;
@@ -115,6 +144,8 @@ namespace Dwm {
       std::string  rc;
 #if defined(__APPLE__)
       rc = GetInstalledVersionMacOS(pkgname);
+#elif defined(__FreeBSD__)
+      rc = GetInstalledVersionFreeBSD(pkgname);
 #elif defined(__linux__)
       rc = GetInstalledVersionDebian(pkgname);
 #endif
