@@ -87,23 +87,22 @@ namespace Dwm {
     static string GetInstalledVersionMacOS(string pkgname)
     {
       string  rc;
-      pkgname = "net.mcplex." + pkgname;
       string  cmd("pkgutil --pkg-info " + pkgname);
-      cmd += " | grep ^version\\: 2>/dev/null";
-      FILE  *p = popen(cmd.c_str(), "r");
+      char    buf[1024] = { 0 };
+      regex   rgx("^version\\: ([^ ]+)\n",
+                  regex::ECMAScript | regex::optimize);
+      smatch  sm;
+      FILE   *p = popen(cmd.c_str(), "r");
       if (p) {
-        char  buf[1024] = { 0 };
-        size_t  bytesRead = fread(buf, 1, 1024, p);
-        if (bytesRead > 0) {
+        while (fgets(buf, sizeof(buf), p)) {
           string  bufstr(buf);
-          regex   rgx("^version\\: ([^ ]+)\n",
-                           regex::ECMAScript | regex::optimize);
-          smatch  sm;
           if (regex_match(bufstr, sm, rgx)) {
             if (sm.size() == 2) {
               rc = sm[1].str();
+              break;
             }
           }
+          memset(buf, 0, sizeof(buf));
         }
         pclose(p);
       }
@@ -159,6 +158,31 @@ namespace Dwm {
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
+    static bool GetInstalledVersionsMacOS(const string & regExp,
+                                          map<string,string> & pkgs)
+    {
+      string  cmd("pkgutil --pkgs='" + regExp + "'");
+      FILE  *p = popen(cmd.c_str(), "r");
+      if (p) {
+        char  buf[1024] = { 0 };
+        while (fgets(buf, sizeof(buf), p)) {
+          string  bufstr(buf);
+          while ('\n' == *(bufstr.rbegin())) {
+            bufstr.resize(bufstr.size() - 1);
+          }
+          string  vers(GetInstalledVersionMacOS(bufstr));
+          if (! vers.empty()) {
+            pkgs[bufstr] = vers;
+          }
+        }
+        pclose(p);
+      }
+      return (! pkgs.empty());
+    }
+    
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
     static bool GetInstalledVersionsFreeBSD(const string & regExp,
                                             map<string,string> & pkgs)
     {
@@ -200,7 +224,9 @@ namespace Dwm {
     bool Utils::GetInstalledVersions(const string & regExp,
                                      map<string,string> & pkgs)
     {
-#if defined(__FreeBSD__)
+#if defined(__APPLE__)
+      return GetInstalledVersionsMacOS(regExp, pkgs);
+#elif defined(__FreeBSD__)
       return GetInstalledVersionsFreeBSD(regExp, pkgs);
 #endif
     }
