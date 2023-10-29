@@ -125,7 +125,10 @@ namespace Dwm {
         size_t  bytesRead = fread(buf, 1, 1024, p);
         if (bytesRead > 0) {
           string  bufstr(buf);
-          regex   rgx("([^ ]+) ([^ ]+)\n",
+          while ('\n' == *(bufstr.rbegin())) {
+            bufstr.resize(bufstr.size() - 1);
+          }
+          regex   rgx("([^ ]+) ([^ ]+)",
                       regex::ECMAScript | regex::optimize);
           smatch  sm;
           if (regex_match(bufstr, sm, rgx)) {
@@ -217,6 +220,44 @@ namespace Dwm {
       }
       return (! pkgs.empty());
     }
+
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    static bool GetInstalledVersionsDebian(const string & regExp,
+                                           map<string,string> & pkgs)
+    {
+      string  cmd("dpkg-query -W -f '${Package} ${Version}\n' 2>/dev/null");
+      FILE  *p = popen(cmd.c_str(), "r");
+      if (p) {
+        char  buf[1024] = { 0 };
+        while (fgets(buf, sizeof(buf), p)) {
+          string  bufstr(buf);
+          auto  idx = bufstr.find_first_of(' ');
+          if ((string::npos != idx)
+              && ((idx + 1) < bufstr.size())) {
+            while ('\n' == *(bufstr.rbegin())) {
+              bufstr.resize(bufstr.size() - 1);
+            }
+            try {
+              regex   rgx(regExp,
+                          regex::ECMAScript | regex::optimize | regex::icase);
+              smatch  sm;
+              string  pkgname(bufstr.substr(0, idx));
+              if (regex_match(pkgname, sm, rgx)) {
+                pkgs[pkgname] = bufstr.substr(idx + 1, bufstr.size() - idx);
+              }
+            }
+            catch (...) {
+              break;
+            }
+          }
+          memset(buf, 0, sizeof(buf));
+        }
+        pclose(p);
+      }
+      return (! pkgs.empty());
+    }
     
     //------------------------------------------------------------------------
     //!  
@@ -228,6 +269,8 @@ namespace Dwm {
       return GetInstalledVersionsMacOS(regExp, pkgs);
 #elif defined(__FreeBSD__)
       return GetInstalledVersionsFreeBSD(regExp, pkgs);
+#elif defined(__linux__)
+      return GetInstalledVersionsDebian(regExp, pkgs);
 #endif
     }
 
