@@ -42,6 +42,7 @@
 #ifndef _DWMMCTALLYUTILS_HH_
 #define _DWMMCTALLYUTILS_HH_
 
+#include <map>
 #include <string>
 
 namespace Dwm {
@@ -54,7 +55,17 @@ namespace Dwm {
     class Utils 
     {
     public:
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
       static std::string GetInstalledVersion(std::string pkgname);
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      static bool
+      GetInstalledVersions(const std::string & regExp,
+                           std::map<std::string,std::string> & pkgs);
     };
     
   }  // namespace McTally

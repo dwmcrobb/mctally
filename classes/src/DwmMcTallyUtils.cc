@@ -40,6 +40,8 @@
 //---------------------------------------------------------------------------
 
 #include <cctype>
+#include <cstdio>
+#include <cstring>
 #include <regex>
     
 #include "DwmMcTallyUtils.hh"
@@ -48,26 +50,28 @@ namespace Dwm {
 
   namespace McTally {
 
+    using namespace std;
+    
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
-    static std::string GetInstalledVersionFreeBSD(std::string pkgname)
+    static string GetInstalledVersionFreeBSD(string pkgname)
     {
-      std::string  rc;
-      std::string  cmd("pkg info -I " + pkgname + " 2>/dev/null");
+      string  rc;
+      string  cmd("pkg info -I " + pkgname + " 2>/dev/null");
       FILE  *p = popen(cmd.c_str(), "r");
       if (p) {
         char  buf[1024] = { 0 };
         size_t  bytesRead = fread(buf, 1, 1024, p);
         if (bytesRead > 0) {
-          std::string  bufstr(buf);
+          string  bufstr(buf);
           auto  idx = bufstr.find_first_of(' ');
-          if ((std::string::npos != idx)
+          if ((string::npos != idx)
               && ((idx + 1) < bufstr.size())) {
             bufstr = bufstr.substr(0, idx + 1);
           }
           idx = bufstr.find_last_of('-');
-          if ((std::string::npos != idx)
+          if ((string::npos != idx)
               && ((idx + 1) < bufstr.size())) {
             rc = bufstr.substr(idx + 1, bufstr.size() - idx);
           }
@@ -80,22 +84,22 @@ namespace Dwm {
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
-    static std::string GetInstalledVersionMacOS(std::string pkgname)
+    static string GetInstalledVersionMacOS(string pkgname)
     {
-      std::string  rc;
+      string  rc;
       pkgname = "net.mcplex." + pkgname;
-      std::string  cmd("pkgutil --pkg-info " + pkgname);
+      string  cmd("pkgutil --pkg-info " + pkgname);
       cmd += " | grep ^version\\: 2>/dev/null";
       FILE  *p = popen(cmd.c_str(), "r");
       if (p) {
         char  buf[1024] = { 0 };
         size_t  bytesRead = fread(buf, 1, 1024, p);
         if (bytesRead > 0) {
-          std::string  bufstr(buf);
-          std::regex   rgx("^version\\: ([^ ]+)\n",
-                           std::regex::ECMAScript | std::regex::optimize);
-          std::smatch  sm;
-          if (std::regex_match(bufstr, sm, rgx)) {
+          string  bufstr(buf);
+          regex   rgx("^version\\: ([^ ]+)\n",
+                           regex::ECMAScript | regex::optimize);
+          smatch  sm;
+          if (regex_match(bufstr, sm, rgx)) {
             if (sm.size() == 2) {
               rc = sm[1].str();
             }
@@ -109,23 +113,23 @@ namespace Dwm {
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
-    static std::string GetInstalledVersionDebian(std::string pkgname)
+    static string GetInstalledVersionDebian(string pkgname)
     {
-      std::transform(pkgname.begin(), pkgname.end(), pkgname.begin(), 
-                     [](unsigned char c){ return std::tolower(c); });
-      std::string  rc;
-      std::string  cmd("dpkg-query -W -f '${Package} ${Version}\n' ");
+      transform(pkgname.begin(), pkgname.end(), pkgname.begin(), 
+                [](unsigned char c){ return tolower(c); });
+      string  rc;
+      string  cmd("dpkg-query -W -f '${Package} ${Version}\n' ");
       cmd += pkgname + " 2>/dev/null";
       FILE  *p = popen(cmd.c_str(), "r");
       if (p) {
         char  buf[1024] = { 0 };
         size_t  bytesRead = fread(buf, 1, 1024, p);
         if (bytesRead > 0) {
-          std::string  bufstr(buf);
-          std::regex   rgx("([^ ]+) ([^ ]+)\n",
-                           std::regex::ECMAScript | std::regex::optimize);
-          std::smatch  sm;
-          if (std::regex_match(bufstr, sm, rgx)) {
+          string  bufstr(buf);
+          regex   rgx("([^ ]+) ([^ ]+)\n",
+                      regex::ECMAScript | regex::optimize);
+          smatch  sm;
+          if (regex_match(bufstr, sm, rgx)) {
             if (sm.size() == 3) {
               rc = sm[2].str();
             }
@@ -139,9 +143,9 @@ namespace Dwm {
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
-    std::string Utils::GetInstalledVersion(std::string pkgname)
+    string Utils::GetInstalledVersion(string pkgname)
     {
-      std::string  rc;
+      string  rc;
 #if defined(__APPLE__)
       rc = GetInstalledVersionMacOS(pkgname);
 #elif defined(__FreeBSD__)
@@ -151,7 +155,56 @@ namespace Dwm {
 #endif
       return rc;
     }
+
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    static bool GetInstalledVersionsFreeBSD(const string & regExp,
+                                            map<string,string> & pkgs)
+    {
+      string  cmd("pkg info -Ia 2>/dev/null");
+      FILE  *p = popen(cmd.c_str(), "r");
+      if (p) {
+        char  buf[1024] = { 0 };
+        while (fgets(buf, sizeof(buf), p)) {
+          string  bufstr(buf);
+          auto  idx = bufstr.find_first_of(' ');
+          if ((string::npos != idx)
+              && ((idx + 1) < bufstr.size())) {
+            bufstr = bufstr.substr(0, idx + 1);
+          }
+          try {
+            regex   rgx(regExp, regex::ECMAScript | regex::optimize);
+            smatch  sm;
+            if (regex_match(bufstr, sm, rgx)) {
+              idx = bufstr.find_last_of('-');
+              if ((string::npos != idx)
+                  && ((idx + 1) < bufstr.size())) {
+                pkgs[bufstr.substr(0,idx)] =
+                  bufstr.substr(idx + 1, bufstr.size() - idx);
+              }
+            }
+          }
+          catch (...) {
+          }
+          memset(buf, 0, sizeof(buf));
+        }
+        pclose(p);
+      }
+      return (! pkgs.empty());
+    }
     
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    bool Utils::GetInstalledVersions(const string & regExp,
+                                     map<string,string> & pkgs)
+    {
+#if defined(__FreeBSD__)
+      return GetInstalledVersionsFreeBSD(regExp, pkgs);
+#endif
+    }
+
     
   }  // namespace McTally
 

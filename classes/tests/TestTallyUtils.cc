@@ -54,4 +54,11 @@ int main(int argc, char *argv[])
   if (! vers.empty()) {
     std::cout << vers << '\n';
   }
+
+  std::map<std::string,std::string>  pkgs;
+  if (McTally::Utils::GetInstalledVersions(argv[2], pkgs)) {
+    for (const auto & pkg : pkgs) {
+      std::cout << pkg.first << ' ' << pkg.second << '\n';
+    }
+  }
 }
