@@ -4,7 +4,10 @@ LTCOMPILE    = ${LIBTOOL} --mode=compile --tag=CXX ${CXX}
 LTLINK       = ${LIBTOOL} --mode=link --tag=CXX ${CXX}
 
 ALLINC       = -I../include ${DWMINCS}
-OBJFILESNP   = DwmMcTallyUtils.o \
+OBJFILESNP   = DwmMcTallyConfigLex.o \
+               DwmMcTallyConfigParse.o \
+               DwmMcTallyServiceConfig.o \
+               DwmMcTallyUtils.o \
                DwmMcTallyVersion.o
 OBJFILES     = $(OBJFILESNP:%=../obj/%)
 OBJDEPS      = $(OBJFILESNP:%.o=deps/%_deps)
@@ -35,6 +38,14 @@ endif
 ../obj/%.o ../obj/%.lo: %.cc deps/%_deps
 	${LTCOMPILE} ${CXXFLAGS} ${PTHREADCXXFLAGS} ${ALLINC} -c $< -o $@
 
+DwmMcTallyConfigParse.hh: DwmMcTallyConfigParse.cc
+
+DwmMcTallyConfigParse.cc: DwmMcTallyConfigParse.y
+	bison -d -o$@ $<
+
+DwmMcTallyConfigLex.cc: DwmMcTallyConfigLex.lex DwmMcTallyConfigParse.hh
+	flex -o$@ $<
+
 tarprep: ${TARDIR}/lib/libDwmMcTally.la
 
 ${TARDIR}/lib/libDwmMcTally.la: ../lib/libDwmMcTally.la
@@ -42,6 +53,7 @@ ${TARDIR}/lib/libDwmMcTally.la: ../lib/libDwmMcTally.la
 
 clean:: clean-tarprep
 	${LIBTOOL} --mode=clean rm -f ../lib/libDwmMcTally.la ${OBJFILES}
+	${LIBTOOL} --mode=clean rm -f DwmMcTallyConfigParse.cc DwmMcTallyConfigParse.hh DwmMcTallyConfigLex.cc
 
 distclean:: clean
 	rm -f ${OBJDEPS}
