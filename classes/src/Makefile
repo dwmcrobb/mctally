@@ -1,19 +1,28 @@
-CXXFLAGS    = -O2 -std=c++17
-INCS        = -I../include
-OBJSNOPATH  = DwmMcTallyUtils.o
-OBJS        = $(OBJSNOPATH:%.o=../obj/%.o)
-OBJDEPS     = $(OBJSNOPATH:%.o=deps/%_deps)
+include ../../Makefile.vars
 
-../lib/libDwmMcTally.a: ${OBJS}
-	ar rv $@ $^
-	-ranlib $@
+LTCOMPILE    = ${LIBTOOL} --mode=compile --tag=CXX ${CXX}
+LTLINK       = ${LIBTOOL} --mode=link --tag=CXX ${CXX}
+
+ALLINC       = -I../include ${DWMINCS}
+OBJFILESNP   = DwmMcTallyUtils.o \
+               DwmMcTallyVersion.o
+OBJFILES     = $(OBJFILESNP:%=../obj/%)
+OBJDEPS      = $(OBJFILESNP:%.o=deps/%_deps)
+SHARED_OBJFILES = $(OBJFILES:%.o=%.lo)
+shlib_version = $(shell ../../getvers.sh -s)
+
+all: ../lib/libDwmMcTally.la
+
+../lib/libDwmMcTally.la: ${SHARED_OBJFILES} ${OBJFILES}
+	${LTLINK} -o $@ ${SHARED_OBJFILES} -rpath ${INSTALLPREFIX}/lib \
+	  -version-info ${shlib_version} ${DWMLIBS}
 
 #  dependency rule
 deps/%_deps: %.cc
 	@echo "making dependencies for $<"
 	@set -e; \
-	${CXX} -MM ${CXXFLAGS} ${INCS} -c $< | \
-	 sed 's/\($*\)\.o[ :]*/\1.o $(@D)\/$(@F) : /g' > $@ ; [ -s $@ ] || \
+	${CXX} -MM ${CXXFLAGS} ${PTHREADCXXFLAGS} ${ALLINC} -c $< | \
+	 sed 's/\($*\)\.o[ :]*/\1.lo $(@D)\/$(@F) : /g' > $@ ; [ -s $@ ] || \
 	 rm -f $@
 
 #  only include dependency makefiles if target is not 'clean' or 'distclean'
@@ -23,11 +32,19 @@ ifneq ($(MAKECMDGOALS),distclean)
 endif
 endif
 
-../obj/%.o: %.cc
-	${CXX} ${CXXFLAGS} ${INCS} -o $@ -c $<
+../obj/%.o ../obj/%.lo: %.cc deps/%_deps
+	${LTCOMPILE} ${CXXFLAGS} ${PTHREADCXXFLAGS} ${ALLINC} -c $< -o $@
 
-clean::
-	rm -f ../lib/libDwmMcTally.a ${OBJS}
+tarprep: ${TARDIR}/lib/libDwmMcTally.la
+
+${TARDIR}/lib/libDwmMcTally.la: ../lib/libDwmMcTally.la
+	${LIBTOOL} --mode=install ../../install-sh -c $< $@
+
+clean:: clean-tarprep
+	${LIBTOOL} --mode=clean rm -f ../lib/libDwmMcTally.la ${OBJFILES}
 
 distclean:: clean
 	rm -f ${OBJDEPS}
+
+clean-tarprep::
+	${LIBTOOL} --mode=uninstall rm -f ${TARDIR}/lib/libDwmMcTally.la

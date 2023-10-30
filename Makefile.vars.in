@@ -1,0 +1,12 @@
+CXX              = @CXX@
+CXXFLAGS         = @CXXFLAGS@
+DWMDIR           = @DWMDIR@
+DWMINCS          = @DWMINCS@
+DWMLIBS          = @DWMLIBS@
+INSTALLPREFIX    = @prefix@
+LIBTOOL	         = @LIBTOOL@
+OSNAME           = @OSNAME@
+PTHREADCXXFLAGS  = @PTHREADCXXFLAGS@
+STAGING_DIR      = @STAGING_DIR@
+TARDIR           = @TARDIR@@prefix@
+VERSION          = @DWM_VERSION@

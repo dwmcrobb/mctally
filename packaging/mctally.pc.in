@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include/libDwmMcTally
+
+Name: mctally
+Description: Software inventory C++ classes and functions
+Version: @TAGVERSION@
+Requires: libDwm, libsodium
+Libs: @PTHREADLDFLAGS@ -L${libdir} -lDwmCredence @DWMLIBS@ -lsodium @OSLIBS@
+Cflags: @PTHREADCXXFLAGS@ -I${includedir} @BOOSTINC@

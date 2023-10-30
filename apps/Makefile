@@ -1,11 +1,16 @@
 APPS      = mctally
 APPSCLEAN = $(APPS:%=%-clean)
 DISTCLEAN = $(APPS:%=%-distclean)
+TARPREP   = $(APPS:%=%-tarprep)
 
 all:: ${APPS}
 
 ${APPS}::
 	${MAKE} -C $@
+
+tarprep:: ${TARPREP}
+${TARPREP}::
+	${MAKE} -C $(patsubst %-tarprep,%,$@) tarprep
 
 distclean:: ${DISTCLEAN}
 ${DISTCLEAN}::

@@ -34,35 +34,26 @@
 //===========================================================================
 
 //---------------------------------------------------------------------------
-//!  \file mctally.cc
+//!  \file DwmMcTallyVersion.hh.in
 //!  \author Daniel W. McRobb
-//!  \brief NOT YET DOCUMENTED
+//!  \brief version macro and Version declaration
 //---------------------------------------------------------------------------
 
-#include <iostream>
+#ifndef _DWMMCTALLYVERSION_HH_
+#define _DWMMCTALLYVERSION_HH_
 
-#include "DwmMcTallyUtils.hh"
-#include "DwmMcTallyVersion.hh"
+#include "DwmGitVersion.hh"
 
-using namespace Dwm;
+#define DWM_MCTALLY_VERSION "0.0.0"
 
-//----------------------------------------------------------------------------
-//!  
-//----------------------------------------------------------------------------
-int main(int argc, char *argv[])
-{
-  if (argc > 1) {
-    std::map<std::string,std::string>  pkgs;
-    for (int n = 1; n < argc; ++n) {
-      McTally::Utils::GetInstalledVersions(argv[n], pkgs);
-    }
-    if (! pkgs.empty()) {
-      for (const auto & pkg : pkgs) {
-        std::cout << pkg.first << ' ' << pkg.second << '\n';
-      }
-      return 0;
-    }
-  }
-  return 1;
-}
+namespace Dwm {
 
+  namespace McTally {
+
+    extern const GitVersion  Version;
+    
+  }  // namespace McTally
+
+}  // namespace Dwm
+
+#endif  // _DWMMCTALLYVERSION_HH_

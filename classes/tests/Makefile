@@ -2,17 +2,27 @@ include ../../Makefile.vars
 
 LTLINK       = ${LIBTOOL} --mode=link --tag=CXX ${CXX}
 
-OBJFILES = mctally.o
+OBJFILES = TestTallyUtils.o
 OBJDEPS	 = $(OBJFILES:%.o=deps/%_deps)
+TESTS	 = $(OBJFILES:%.o=%)
 CXXFLAGS += -g
-LDFLAGS  += -Wl,-rpath ${DWMDIR}/lib
+LDFLAGS  += -g
 ALLINC   = ${DWMINCS}
-ALLINC   += ${NLOHMANNJSONINC} -I../../classes/include -I.
+ALLINC   += ${NLOHMANNJSONINC} -I../include
 ALLLIBS  = ${DWMLIBS}
-TARTARGETS  = ${TARDIR}/bin/mctally
 
-mctally: ${OBJFILES} ../../classes/lib/libDwmMcTally.la
-	${LTLINK} ${LDFLAGS} -o $@ $^ ${ALLLIBS}
+all: ${TESTS}
+
+runtests: all
+	@ for tp in ${TESTS} ; do \
+		printf "%-36s " $$tp ; \
+		out=`./$$tp` ; \
+		if [ $$? -eq 0 ]; then \
+		  printf "%25s\n" "$$out" ; \
+		else \
+		  printf "\n%s" "$$out" ; \
+		fi ; \
+	done
 
 #  dependency rule
 deps/%_deps: %.cc 
@@ -30,19 +40,14 @@ endif
 %.o: %.cc deps/%_deps
 	${CXX} ${CXXFLAGS} ${PTHREADCXXFLAGS} ${ALLINC} -c $<
 
-../../classes/lib/libDwmMcTally.la::
-	${MAKE} -C ../../classes/src
+%: %.o ../lib/libDwmMcTally.la
+	${LTLINK} ${LDFLAGS} -o $@ $^ ${ALLLIBS}
 
-tarprep: ${TARTARGETS}
+../lib/libDwmMcTally.la::
+	${MAKE} -C ../src
 
-${TARDIR}/bin/mctally: mctally
-	${LIBTOOL} --mode=install ../../install-sh -s -c -m 555 $< $@
-
-clean:: clean-tarprep
-	${LIBTOOL} --mode=clean rm -f mctally ${OBJFILES}
-
-clean-tarprep::
-	${LIBTOOL} --mode=uninstall rm -f ${TARTARGETS}
+clean::
+	${LIBTOOL} --mode=clean rm -f ${TESTS} ${OBJFILES}
 
 distclean:: clean
-	rm -f deps/*_deps
+	rm -f #{OBJDEPS}
