@@ -44,6 +44,7 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 namespace Dwm {
 
@@ -66,7 +67,11 @@ namespace Dwm {
       static bool
       GetInstalledVersions(const std::string & regExp,
                            std::map<std::string,std::string> & pkgs);
-    };
+
+      static bool
+      GetInstalledVersions(const std::vector<std::string> & regExp,
+                           std::map<std::string,std::string> & pkgs);
+      };
     
   }  // namespace McTally
 

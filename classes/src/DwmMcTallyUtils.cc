@@ -260,6 +260,48 @@ namespace Dwm {
       }
       return (! pkgs.empty());
     }
+
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    static bool GetInstalledVersionsDebian(const vector<string> & regExps,
+                                           map<string,string> & pkgs)
+    {
+      string  cmd("dpkg-query -W -f '${Package} ${Version}\n' 2>/dev/null");
+      FILE  *p = popen(cmd.c_str(), "r");
+      if (p) {
+        char  buf[1024] = { 0 };
+        while (fgets(buf, sizeof(buf), p)) {
+          string  bufstr(buf);
+          auto  idx = bufstr.find_first_of(' ');
+          if ((string::npos != idx)
+              && ((idx + 1) < bufstr.size())) {
+            while ('\n' == *(bufstr.rbegin())) {
+              bufstr.resize(bufstr.size() - 1);
+            }
+            string  pkgname(bufstr.substr(0, idx));
+            string  pkgvers(bufstr.substr(idx + 1, bufstr.size() - idx));
+            for (const auto & rgxstr : regExps) {
+              try {
+                regex  rgx(rgxstr,
+                           regex::ECMAScript
+                           | regex::optimize
+                           | regex::icase);
+                smatch  sm;
+                if (regex_match(pkgname, sm, rgx)) {
+                  pkgs[pkgname] = pkgvers;
+                }
+              }
+              catch (...) {
+              }
+            }
+          }
+          memset(buf, 0, sizeof(buf));
+        }
+        pclose(p);
+      }
+      return (! pkgs.empty());
+    }
     
     //------------------------------------------------------------------------
     //!  
@@ -276,6 +318,21 @@ namespace Dwm {
 #endif
     }
 
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    bool Utils::GetInstalledVersions(const vector<string> & regExps,
+                                     map<string,string> & pkgs)
+    {
+#if defined(__APPLE__)
+      return GetInstalledVersionsMacOS(regExps, pkgs);
+#elif defined(__FreeBSD__)
+      return GetInstalledVersionsFreeBSD(regExps, pkgs);
+#elif defined(__linux__)
+      return GetInstalledVersionsDebian(regExps, pkgs);
+#endif
+    }
+    
     
   }  // namespace McTally
 

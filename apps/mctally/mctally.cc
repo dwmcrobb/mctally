@@ -110,21 +110,19 @@ int main(int argc, char *argv[])
         break;
     }
   }
+  std::vector<std::string>  regExps;
+  for (int n = optind; n < argc; ++n) {
+    regExps.push_back(argv[n]);
+  }
 
   if (! host.empty()) {
-    std::vector<std::string>  regExps;
-    for (int n = optind; n < argc; ++n) {
-      regExps.push_back(argv[n]);
-    }
     if (ShowRemoteVersions(host, regExps)) {
       return 0;
     }
   }
   else {
     std::map<std::string,std::string>  pkgs;
-    for (int n = optind; n < argc; ++n) {
-      McTally::Utils::GetInstalledVersions(argv[n], pkgs);
-    }
+    McTally::Utils::GetInstalledVersions(regExps, pkgs);
     if (! pkgs.empty()) {
       for (const auto & pkg : pkgs) {
         std::cout << pkg.first << ' ' << pkg.second << '\n';
