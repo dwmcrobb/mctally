@@ -42,6 +42,7 @@
 #include <cctype>
 #include <cstdio>
 #include <cstring>
+#include <iostream>
 #include <regex>
     
 #include "DwmMcTallyUtils.hh"
@@ -198,17 +199,18 @@ namespace Dwm {
           auto  idx = bufstr.find_first_of(' ');
           if ((string::npos != idx)
               && ((idx + 1) < bufstr.size())) {
-            bufstr = bufstr.substr(0, idx + 1);
+            bufstr = bufstr.substr(0, idx);
           }
           try {
-            regex   rgx(regExp, regex::ECMAScript | regex::optimize);
-            smatch  sm;
-            if (regex_match(bufstr, sm, rgx)) {
-              idx = bufstr.find_last_of('-');
-              if ((string::npos != idx)
-                  && ((idx + 1) < bufstr.size())) {
-                pkgs[bufstr.substr(0,idx)] =
-                  bufstr.substr(idx + 1, bufstr.size() - idx);
+            idx = bufstr.find_last_of('-');
+            if ((string::npos != idx)
+                && ((idx + 1) < bufstr.size())) {
+              string  pkgname(bufstr.substr(0,idx));
+              string  pkgvers(bufstr.substr(idx+1,bufstr.size() - idx));
+              regex   rgx(regExp, regex::ECMAScript | regex::optimize);
+              smatch  sm;
+              if (regex_match(pkgname, sm, rgx)) {
+                pkgs[pkgname] = pkgvers;
               }
             }
           }
