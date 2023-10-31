@@ -95,6 +95,8 @@ namespace Dwm {
           else {
             acc.open(ip::tcp::v4());
           }
+          ip::tcp::acceptor::reuse_address option(true);
+          acc.set_option(option);
           acc.bind(ep);
           auto & a = _acceptors.emplace_back(std::move(acc));
           a.listen();
