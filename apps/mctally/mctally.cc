@@ -39,8 +39,14 @@
 //!  \brief NOT YET DOCUMENTED
 //---------------------------------------------------------------------------
 
+extern "C" {
+  #include <unistd.h>
+}
+
 #include <iostream>
 
+#include "DwmCredencePeer.hh"
+#include "DwmMcTallyRequest.hh"
 #include "DwmMcTallyUtils.hh"
 #include "DwmMcTallyVersion.hh"
 
@@ -49,11 +55,74 @@ using namespace Dwm;
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
+static bool ShowRemoteVersions(const std::string & host,
+                               const std::vector<std::string> & regExps)
+{
+  bool            rc = false;
+  Credence::Peer  peer;
+  if (peer.Connect(host, 2125)) {
+    Credence::KeyStash   keyStash;
+    Credence::KnownKeys  knownKeys;
+    if (peer.Authenticate(keyStash, knownKeys)) {
+      uint8_t  req = McTally::e_installedPackages;
+      for (const auto & rgx : regExps) {
+        if (peer.Send(req)) {
+          if (peer.Send(rgx)) {
+            std::map<std::string,std::string>  pkgs;
+            if (peer.Receive(pkgs)) {
+              rc = true;
+              for (const auto & pkg : pkgs) {
+                std::cout << pkg.first << ' ' << pkg.second << '\n';
+              }
+            }
+            else {
+              break;
+            }
+          }
+          else {
+            break;
+          }
+        }
+        else {
+          break;
+        }
+      }
+    }
+  }
+  return rc;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-  if (argc > 1) {
+  std::string  host;
+  extern int   optind;
+  int          optChar;
+
+  while ((optChar = getopt(argc, argv, "h:")) != -1) {
+    switch (optChar) {
+      case 'h':
+        host = optarg;
+        break;
+      default:
+        break;
+    }
+  }
+
+  if (! host.empty()) {
+    std::vector<std::string>  regExps;
+    for (int n = optind; n < argc; ++n) {
+      regExps.push_back(argv[n]);
+    }
+    if (ShowRemoteVersions(host, regExps)) {
+      return 0;
+    }
+  }
+  else {
     std::map<std::string,std::string>  pkgs;
-    for (int n = 1; n < argc; ++n) {
+    for (int n = optind; n < argc; ++n) {
       McTally::Utils::GetInstalledVersions(argv[n], pkgs);
     }
     if (! pkgs.empty()) {
@@ -63,6 +132,7 @@ int main(int argc, char *argv[])
       return 0;
     }
   }
+  
   return 1;
 }
 
