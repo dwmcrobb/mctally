@@ -1,0 +1,2 @@
+I need a GetInstalledVersions() that will accept more than one regular
+expression string (a vector<string> is sufficient).
