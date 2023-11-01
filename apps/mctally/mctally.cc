@@ -65,26 +65,15 @@ static bool ShowRemoteVersions(const std::string & host,
     Credence::KnownKeys  knownKeys;
     if (peer.Authenticate(keyStash, knownKeys)) {
       uint8_t  req = McTally::e_installedPackages;
-      for (const auto & rgx : regExps) {
-        if (peer.Send(req)) {
-          if (peer.Send(rgx)) {
-            std::map<std::string,std::string>  pkgs;
-            if (peer.Receive(pkgs)) {
-              rc = true;
-              for (const auto & pkg : pkgs) {
-                std::cout << pkg.first << ' ' << pkg.second << '\n';
-              }
-            }
-            else {
-              break;
+      if (peer.Send(req)) {
+        if (peer.Send(regExps)) {
+          std::map<std::string,std::string>  pkgs;
+          if (peer.Receive(pkgs)) {
+            rc = true;
+            for (const auto & pkg : pkgs) {
+              std::cout << pkg.first << ' ' << pkg.second << '\n';
             }
           }
-          else {
-            break;
-          }
-        }
-        else {
-          break;
         }
       }
     }
