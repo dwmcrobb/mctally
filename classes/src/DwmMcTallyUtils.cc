@@ -187,6 +187,42 @@ namespace Dwm {
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
+    static bool GetInstalledVersionsMacOS(const vector<string> & regExps,
+                                          map<string,string> & pkgs)
+    {
+      string  cmd("pkgutil --pkgs");
+      FILE  *p = popen(cmd.c_str(), "r");
+      if (p) {
+        char    buf[1024] = { 0 };
+        vector<regex>  rgxvec;
+        for (const auto & regExp : regExps) {
+          rgxvec.emplace(rgxvec.end(),
+                         regex(regExp, regex::ECMAScript | regex::optimize));
+        }
+        smatch  sm;
+        while (fgets(buf, sizeof(buf), p)) {
+          string  bufstr(buf);
+          while ('\n' == *(bufstr.rbegin())) {
+            bufstr.resize(bufstr.size() - 1);
+          }
+          for (const auto & rgx : rgxvec) {
+            if (regex_match(bufstr, sm, rgx)) {
+              string  vers(GetInstalledVersionMacOS(bufstr));
+              if (! vers.empty()) {
+                pkgs[bufstr] = vers;
+                break;
+              }
+            }
+          }
+        }
+        pclose(p);
+      }
+      return (! pkgs.empty());
+    }
+    
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
     static bool GetInstalledVersionsFreeBSD(const string & regExp,
                                             map<string,string> & pkgs)
     {
