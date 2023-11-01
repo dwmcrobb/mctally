@@ -262,6 +262,51 @@ namespace Dwm {
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
+    static bool GetInstalledVersionsFreeBSD(const vector<string> & regExps,
+                                            map<string,string> & pkgs)
+    {
+      string  cmd("pkg info -Ia 2>/dev/null");
+      FILE  *p = popen(cmd.c_str(), "r");
+      if (p) {
+        vector<regex>  rgxvec;
+        for (const auto & regExp : regExps) {
+          rgxvec.emplace(rgxvec.end(),
+                         regex(regExp, regex::ECMAScript | regex::optimize));
+        }
+        smatch  sm;
+        char  buf[1024] = { 0 };
+        while (fgets(buf, sizeof(buf), p)) {
+          string  bufstr(buf);
+          auto  idx = bufstr.find_first_of(' ');
+          if ((string::npos != idx)
+              && ((idx + 1) < bufstr.size())) {
+            bufstr = bufstr.substr(0, idx);
+          }
+          try {
+            idx = bufstr.find_last_of('-');
+            if ((string::npos != idx)
+                && ((idx + 1) < bufstr.size())) {
+              string  pkgname(bufstr.substr(0,idx));
+              for (const auto & rgx : rgxvec) {
+                if (regex_match(pkgname, sm, rgx)) {
+                  pkgs[pkgname] = bufstr.substr(idx+1,bufstr.size() - idx);
+                  break;
+                }
+              }
+            }
+          }
+          catch (...) {
+          }
+          memset(buf, 0, sizeof(buf));
+        }
+        pclose(p);
+      }
+      return (! pkgs.empty());
+    }
+
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
     static bool GetInstalledVersionsDebian(const string & regExp,
                                            map<string,string> & pkgs)
     {

@@ -51,6 +51,7 @@ extern "C" {
 
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "DwmCredencePeer.hh"
 #include "DwmMcTallyRequest.hh"
@@ -93,7 +94,7 @@ namespace Dwm {
       std::atomic<bool>     _running;
 
       bool HandleRequest(Request cmd);
-      bool SendInstalledPackages(const std::string & regExp);
+      bool SendInstalledPackages(const std::vector<std::string> & regExps);
       void Run();
     };
     

@@ -112,11 +112,11 @@ namespace Dwm {
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
-    bool Responder::SendInstalledPackages(const std::string & regExp)
+    bool Responder::SendInstalledPackages(const vector<string> & regExps)
     {
       bool  rc = false;
-      std::map<std::string,std::string>  pkgs;
-      Utils::GetInstalledVersions(regExp, pkgs);
+      map<string,string>  pkgs;
+      Utils::GetInstalledVersions(regExps, pkgs);
       if (_peer.Send(pkgs)) {
         rc = true;
       }
@@ -137,9 +137,9 @@ namespace Dwm {
       switch (cmd) {
         case e_installedPackages:
           {
-            std::string  regExp;
-            if (_peer.Receive(regExp)) {
-              rc = SendInstalledPackages(regExp);
+            vector<string>  regExps;
+            if (_peer.Receive(regExps)) {
+              rc = SendInstalledPackages(regExps);
             }
           }
           break;
