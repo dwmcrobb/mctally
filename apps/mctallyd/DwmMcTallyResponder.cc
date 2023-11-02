@@ -121,7 +121,7 @@ namespace Dwm {
         rc = true;
       }
       else {
-        Syslog(LOG_ERR, "Failed to write pkgs to client %s",
+        Syslog(LOG_ERR, "Failed to send pkgs to client %s",
                _peer.Id().c_str());
       }
       return rc;
@@ -140,6 +140,9 @@ namespace Dwm {
             vector<string>  regExps;
             if (_peer.Receive(regExps)) {
               rc = SendInstalledPackages(regExps);
+            }
+            else {
+              Syslog(LOG_ERR, "_peer.Receive(regExps) failed");
             }
           }
           break;
