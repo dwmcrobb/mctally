@@ -50,13 +50,14 @@ extern "C" {
 #include "DwmMcTallyUtils.hh"
 #include "DwmMcTallyVersion.hh"
 
+using namespace std;
 using namespace Dwm;
 
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
-static bool ShowRemoteVersions(const std::string & host,
-                               const std::vector<std::string> & regExps)
+static bool ShowRemoteVersions(const string & host,
+                               const vector<string> & regExps)
 {
   bool            rc = false;
   Credence::Peer  peer;
@@ -67,15 +68,27 @@ static bool ShowRemoteVersions(const std::string & host,
       uint8_t  req = McTally::e_installedPackages;
       if (peer.Send(req)) {
         if (peer.Send(regExps)) {
-          std::map<std::string,std::string>  pkgs;
+          map<string,string>  pkgs;
           if (peer.Receive(pkgs)) {
             rc = true;
             for (const auto & pkg : pkgs) {
-              std::cout << pkg.first << ' ' << pkg.second << '\n';
+              cout << pkg.first << ' ' << pkg.second << '\n';
             }
           }
+          else {
+            cerr << "Failed to received pkg list from " << host << '\n';
+          }
+        }
+        else {
+          cerr << "Failed to send request to " << host << '\n';
         }
       }
+      else {
+        cerr << "Failed to send request to " << host << '\n';
+      }
+    }
+    else {
+      cerr << "Failed to authenticate with " << host << '\n';
     }
   }
   return rc;
@@ -86,7 +99,7 @@ static bool ShowRemoteVersions(const std::string & host,
 //----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-  std::string  host;
+  string       host;
   extern int   optind;
   int          optChar;
 
@@ -99,7 +112,8 @@ int main(int argc, char *argv[])
         break;
     }
   }
-  std::vector<std::string>  regExps;
+
+  vector<string>  regExps;
   for (int n = optind; n < argc; ++n) {
     regExps.push_back(argv[n]);
   }
@@ -110,11 +124,11 @@ int main(int argc, char *argv[])
     }
   }
   else {
-    std::map<std::string,std::string>  pkgs;
+    map<string,string>  pkgs;
     McTally::Utils::GetInstalledVersions(regExps, pkgs);
     if (! pkgs.empty()) {
       for (const auto & pkg : pkgs) {
-        std::cout << pkg.first << ' ' << pkg.second << '\n';
+        cout << pkg.first << ' ' << pkg.second << '\n';
       }
       return 0;
     }
