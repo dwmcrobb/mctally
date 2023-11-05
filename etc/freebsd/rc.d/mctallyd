@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# PROVIDE: mctallyd
+# REQUIRE: FILESYSTEMS disks mountd resolv
+
+. /etc/rc.subr
+
+name="mctallyd"
+rcvar=mctallyd_enable
+
+load_rc_config mctallyd
+
+: ${mctallyd_enable:="NO"}
+
+required_files="${mctallyd_config:=/usr/local/etc/mctallyd.cfg} /usr/local/etc/mctallyd/id_ed25519 /usr/local/etc/mctallyd/known_keys"
+
+pidfile=${mctallyd_pidfile:="/var/run/mctallyd.pid"}
+
+command="/usr/local/sbin/mctallyd"
+command_args="-c ${mctallyd_config} -p ${pidfile}"
+
+start_precmd=mctallyd_precmd
+
+mctallyd_precmd()
+{
+    export PATH="${PATH}:/usr/local/sbin"
+}
+
+run_rc_command "$1"

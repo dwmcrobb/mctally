@@ -1,0 +1,17 @@
+[Unit]
+Description=mctallyd
+DefaultDependencies=no
+After=rc-local.service
+
+[Service]
+ExecStart=/usr/local/sbin/mctallyd -c /usr/local/etc/mctallyd.cfg -p /run/mctallyd.pid
+KillMode=process
+PIDFile=/run/mctallyd.pid
+Restart=on-failure
+# StandardInput=tty
+# StandardOutput=tty
+Type=forking
+
+[Install]
+WantedBy=multi-user.target
+Alias=mctallyd.service
