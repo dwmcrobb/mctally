@@ -14,6 +14,7 @@ tarprep:: classes/lib/libDwmMcTally.la apps
 ifeq ("${BUILD_DOCS}", "yes")
 	${MAKE} -C doc $@
 endif
+	${MAKE} -C etc $@
 	${MAKE} -C packaging $@
 
 package: ${OSNAME}-pkg
