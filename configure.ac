@@ -98,5 +98,6 @@ AC_SUBST(BUILD_DOCS)
 
 AC_CONFIG_FILES([Makefile.vars packaging/debcontrol
                  packaging/fbsd_manifest packaging/mctally.pc
-		 classes/include/DwmMcTallyVersion.hh])
+		 classes/include/DwmMcTallyVersion.hh
+		 etc/net.mcplex.mctallyd.plist])
 AC_OUTPUT

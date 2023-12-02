@@ -5252,7 +5252,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile.vars packaging/debcontrol packaging/fbsd_manifest packaging/mctally.pc classes/include/DwmMcTallyVersion.hh"
+ac_config_files="$ac_config_files Makefile.vars packaging/debcontrol packaging/fbsd_manifest packaging/mctally.pc classes/include/DwmMcTallyVersion.hh etc/net.mcplex.mctallyd.plist"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -5960,6 +5960,7 @@ do
     "packaging/fbsd_manifest") CONFIG_FILES="$CONFIG_FILES packaging/fbsd_manifest" ;;
     "packaging/mctally.pc") CONFIG_FILES="$CONFIG_FILES packaging/mctally.pc" ;;
     "classes/include/DwmMcTallyVersion.hh") CONFIG_FILES="$CONFIG_FILES classes/include/DwmMcTallyVersion.hh" ;;
+    "etc/net.mcplex.mctallyd.plist") CONFIG_FILES="$CONFIG_FILES etc/net.mcplex.mctallyd.plist" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

@@ -129,12 +129,16 @@ int main(int argc, char *argv[])
 {
   string  configFile("/usr/local/etc/mctallyd.cfg");
   string  pidFile("/var/run/mctallyd.pid");
+  bool    daemonize = true;
   
   int  optChar;
-  while ((optChar = getopt(argc, argv, "c:p:")) != -1) {
+  while ((optChar = getopt(argc, argv, "c:dp:")) != -1) {
     switch (optChar) {
       case 'c':
         configFile = optarg;
+        break;
+      case 'd':
+        daemonize = false;
         break;
       case 'p':
         pidFile = optarg;
@@ -148,7 +152,9 @@ int main(int argc, char *argv[])
 
   McTally::Config  config;
   if (config.Parse(configFile)) {
-    DaemonUtils::Daemonize();
+    if (daemonize) {
+      DaemonUtils::Daemonize();
+    }
     Dwm::SysLogger::Open("mctallyd", LOG_PID, config.SyslogFacility());
     Dwm::SysLogger::MinimumPriority(config.SyslogLevel());
     Dwm::SysLogger::ShowFileLocation(config.SyslogLocations());
