@@ -24,7 +24,7 @@ freebsd-pkg: tarprep
 	pkg create -o . -r staging -m staging
 
 darwin-pkg: tarprep
-	pkgbuild --root staging --identifier net.mcplex.mctally --version ${VERSION} mctally-${VERSION}.pkg
+	pkgbuild --root staging --identifier net.mcplex.mctally --version ${VERSION} --scripts etc/macos/scripts mctally-${VERSION}.pkg
 
 linux-pkg: tarprep
 	if [ ! -d staging/DEBIAN ]; then mkdir staging/DEBIAN; fi

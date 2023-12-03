@@ -96,8 +96,17 @@ AC_ARG_ENABLE([docs],[AS_HELP_STRING([--enable-docs],[build documentation])],
 	      [BUILD_DOCS="yes"], [])
 AC_SUBST(BUILD_DOCS)
 
-AC_CONFIG_FILES([Makefile.vars packaging/debcontrol
+AC_CONFIG_FILES([Makefile.vars apps/mctallyd/mctallyd.cc packaging/debcontrol
                  packaging/fbsd_manifest packaging/mctally.pc
 		 classes/include/DwmMcTallyVersion.hh
-		 etc/net.mcplex.mctallyd.plist])
+		 etc/macos/net.mcplex.mctallyd.plist])
+AC_CONFIG_FILES([etc/macos/scripts/postinstall],
+		[chmod a+x etc/macos/scripts/postinstall])
+AC_CONFIG_FILES([etc/macos/scripts/preinstall],
+		[chmod a+x etc/macos/scripts/preinstall])
+		 
+dnl AC_CONFIG_COMMANDS([chmod_macos_scripts],
+dnl                    [chmod a+x etc/macos/scripts/postinstall
+dnl 		    chmod a+x etc/macos/scripts/preinstall],
+dnl 		   [])
 AC_OUTPUT

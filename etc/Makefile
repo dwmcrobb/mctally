@@ -14,6 +14,8 @@ tarprep-linux::
 	${MAKE} -C linux/systemd/system tarprep
 
 tarprep-darwin::
+	${MAKE} -C macos tarprep
+
 	echo "No startup scripts for darwin"
 
 ${TARDIR}/etc/mctallyd.cfg.example: mctallyd.cfg.example
@@ -31,7 +33,7 @@ clean-tarprep-linux::
 	${MAKE} -C linux/systemd/system clean-tarprep
 
 clean-tarprep-darwin::
-	echo "No startup scripts for darwin"
+	${MAKE} -C macos clean-tarprep
 
 distclean::
 	echo "Nothing to be done for distclean"

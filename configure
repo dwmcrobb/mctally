@@ -5252,7 +5252,12 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile.vars packaging/debcontrol packaging/fbsd_manifest packaging/mctally.pc classes/include/DwmMcTallyVersion.hh etc/net.mcplex.mctallyd.plist"
+ac_config_files="$ac_config_files Makefile.vars apps/mctallyd/mctallyd.cc packaging/debcontrol packaging/fbsd_manifest packaging/mctally.pc classes/include/DwmMcTallyVersion.hh etc/macos/net.mcplex.mctallyd.plist"
+
+ac_config_files="$ac_config_files etc/macos/scripts/postinstall"
+
+ac_config_files="$ac_config_files etc/macos/scripts/preinstall"
+
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -5956,11 +5961,14 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "Makefile.vars") CONFIG_FILES="$CONFIG_FILES Makefile.vars" ;;
+    "apps/mctallyd/mctallyd.cc") CONFIG_FILES="$CONFIG_FILES apps/mctallyd/mctallyd.cc" ;;
     "packaging/debcontrol") CONFIG_FILES="$CONFIG_FILES packaging/debcontrol" ;;
     "packaging/fbsd_manifest") CONFIG_FILES="$CONFIG_FILES packaging/fbsd_manifest" ;;
     "packaging/mctally.pc") CONFIG_FILES="$CONFIG_FILES packaging/mctally.pc" ;;
     "classes/include/DwmMcTallyVersion.hh") CONFIG_FILES="$CONFIG_FILES classes/include/DwmMcTallyVersion.hh" ;;
-    "etc/net.mcplex.mctallyd.plist") CONFIG_FILES="$CONFIG_FILES etc/net.mcplex.mctallyd.plist" ;;
+    "etc/macos/net.mcplex.mctallyd.plist") CONFIG_FILES="$CONFIG_FILES etc/macos/net.mcplex.mctallyd.plist" ;;
+    "etc/macos/scripts/postinstall") CONFIG_FILES="$CONFIG_FILES etc/macos/scripts/postinstall" ;;
+    "etc/macos/scripts/preinstall") CONFIG_FILES="$CONFIG_FILES etc/macos/scripts/preinstall" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -6374,6 +6382,12 @@ which seems to be undefined.  Please make sure it is defined" >&2;}
 
   esac
 
+
+  case $ac_file$ac_mode in
+    "etc/macos/scripts/postinstall":F) chmod a+x etc/macos/scripts/postinstall ;;
+    "etc/macos/scripts/preinstall":F) chmod a+x etc/macos/scripts/preinstall ;;
+
+  esac
 done # for ac_tag
 
 

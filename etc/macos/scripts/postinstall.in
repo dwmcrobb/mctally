@@ -1,0 +1,79 @@
+#!/bin/sh
+
+#----------------------------------------------------------------------------
+key_in_keys_file() {
+    keyfile=$1
+    keysfile=$2
+    local kikf=1
+    if [ -f ${keyfile} ]; then
+	if [ -f ${keysfile} ]; then
+	    local key=`cat ${keyfile} | cut -d' ' -f1`
+	    if [ -n "${key}" ]; then
+		grep "${key}" ${keysfile} > /dev/null 2>&1
+		if [ $? -eq 0 ]; then
+		    kikf=0
+		fi
+	    fi
+	fi
+    fi
+    return ${kikf}
+}
+
+#----------------------------------------------------------------------------
+user_known_to_mctallyd () {
+    return $(key_in_keys_file ${USER_KEY} ${MCTALLYD_KNOWN_KEYS})
+}
+
+#----------------------------------------------------------------------------
+mctallyd_known_to_user () {
+    return $(key_in_keys_file ${MCTALLYD_KEY} ${USER_KNOWN_KEYS})
+}
+
+#----------------------------------------------------------------------------
+add_user_to_known_keys () {
+    if [ -f ${USER_KEY} ]; then
+	local key=`cat ${USER_KEY}`
+	echo ${key} >> ${MCTALLYD_KNOWN_KEYS}
+    fi
+}
+
+#----------------------------------------------------------------------------
+add_mctallyd_to_user_known_keys () {
+    if [ -f ${MCTALLYD_KEY} ]; then
+	local key=`cat ${MCTALLYD_KEY}`
+	echo ${key} >> ${USER_KNOWN_KEYS}
+    fi
+}
+
+#----------------------------------------------------------------------------
+#  main
+#----------------------------------------------------------------------------
+export PATH=${PATH}:@prefix@/bin
+
+USER_KEY=${HOME}/.credence/id_ed25519.pub
+USER_KNOWN_KEYS=${HOME}/.credence/known_keys
+MCTALLYD_KEY=@prefix@/etc/mctallyd/id_ed25519.pub
+MCTALLYD_KNOWN_KEYS=@prefix@/etc/mctallyd/known_keys
+
+#  Create directory for our credence keys if it doesn't exist.
+if [ ! -d @prefix@/etc/mctallyd ]; then         
+    mkdir @prefix@/etc/mctallyd
+fi                                                                          
+
+# Check for existing mctallyd key, create if it doesn't exist.
+if [ ! -f ${MCTALLYD_KEY} ]; then
+    credence keygen -i mctallyd@`hostname` -d @prefix@/etc/mctallyd
+fi
+
+# and set up the installation user to use mctally.
+user_known_to_mctallyd
+if [ $? -ne 0 ]; then
+    add_user_to_known_keys
+fi
+mctallyd_known_to_user
+if [ $? -ne 0 ]; then
+    add_mctallyd_to_user_known_keys
+fi
+
+# And load mctallyd into launchd.
+launchctl load -w /Library/LaunchDaemons/net.mcplex.mctallyd.plist

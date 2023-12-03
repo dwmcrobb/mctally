@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Unload mctallyd from launchd.
+if [ -f /Library/LaunchDaemons/net.mcplex.mctallyd.plist ]; then
+    launchctl unload -w /Library/LaunchDaemons/net.mcplex.mctallyd.plist
+fi
+
+echo "home: " ${HOME} > /tmp/install.log

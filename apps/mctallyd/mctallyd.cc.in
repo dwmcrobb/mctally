@@ -116,9 +116,10 @@ static void BoostSignalHandler(const boost::system::error_code & ec,
 //----------------------------------------------------------------------------
 static void Usage(const char *argv0)
 {
-  cerr << "Usage: " << argv0 << " [-c configFile] [-p pidFile]\n"
-       << "  Default configFile: /usr/local/etc/mctallyd.cfg\n"
-       << "  Default pidFile: /var/run/mctallyd.pid\n";
+  cerr << "Usage: " << argv0 << " [-d] [-c configFile] [-p pidFile]\n"
+       << "  Default configFile: @prefix@/etc/mctallyd.cfg\n"
+       << "  Default pidFile: /var/run/mctallyd.pid\n"
+       << "  -d: do not daemonize\n";
   return;
 }
 
@@ -127,7 +128,7 @@ static void Usage(const char *argv0)
 //----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-  string  configFile("/usr/local/etc/mctallyd.cfg");
+  string  configFile("@prefix@/etc/mctallyd.cfg");
   string  pidFile("/var/run/mctallyd.pid");
   bool    daemonize = true;
   

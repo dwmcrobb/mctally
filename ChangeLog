@@ -1,0 +1,20 @@
+2023-12-03  Daniel McRobb  <dwm@spark.mcplex.net>
+
+	* configure, configure.ac: Now generate apps/mctallyd/mctallyd.cc
+	just so we can set default config file path according to @prefix@.
+	Generate etc/macos/scripts/preinstall and
+	etc/macos/scripts/postinstall.
+	Generate etc/net.mcplex.mctallyd.plist
+
+	* apps/mctallyd/mctallyd.c.in: Added -d (don't daemonize) command
+	line option to mctallyd	so we can run under launchd on macOS.
+
+	* etc/macos/scripts/preinstall.in:
+	* etc/macos/scripts/postinstall.in:
+	Preinstall and postinstall scripts for macOS.  Do what we need to
+	do with launchdctl and set up installing user to authenticate to
+	mctallyd if they have an existing credence key.
+
+	* etc/net.mcplex.mctallyd.plist.in:
+	launchd daemon plist for mctallyd.
+
