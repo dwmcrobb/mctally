@@ -134,6 +134,17 @@ namespace Dwm {
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
+      const std::string & PrettyName() const     { return _utsName[5]; }
+      
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      const std::string & PrettyName(const std::string & prettyName)
+      { return _utsName[5] = prettyName; }
+      
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
       std::istream & Read(std::istream & is);
 
       //----------------------------------------------------------------------
@@ -148,8 +159,8 @@ namespace Dwm {
       { return _utsName == u._utsName; }
       
     private:
-      //  [ OSName, NodeName, Release, Version, Machine ]
-      std::array<std::string,5>  _utsName;
+      //  [ OSName, NodeName, Release, Version, Machine, PrettyName ]
+      std::array<std::string,6>  _utsName;
     };
     
   }  // namespace McTally

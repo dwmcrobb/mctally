@@ -39,6 +39,10 @@
 //!  \brief Dwm::McTally::Uname class implementation
 //---------------------------------------------------------------------------
 
+#include <cstdio>
+#include <map>
+#include <regex>
+
 #include "DwmStreamIO.hh"
 #include "DwmMcTallyUname.hh"
 
@@ -46,12 +50,105 @@ namespace Dwm {
 
   namespace McTally {
 
+#if defined(__APPLE__)
+
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    static std::string GetMacOSReleaseName(const std::string & vers)
+    {
+      static const std::regex  rgx("([0-9]+)\\..*",
+                                   std::regex::optimize
+                                   |std::regex::ECMAScript);
+      static const std::map<std::string,std::string>  releaseNames = {
+        { "14", "Sonoma" },
+        { "13", "Ventura" },
+        { "12", "Monterey" },
+        { "11", "Big Sur" }
+      };
+      std::string  rc;
+      std::smatch  sm;
+      if (regex_match(vers, sm, rgx)) {
+        if (sm.size() == 2) {
+          auto  it = releaseNames.find(sm[1].str());
+          if (it != releaseNames.end()) {
+            rc = it->second;
+          }
+        }
+      }
+      return rc;
+    }
+      
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    static std::string GetPrettyName()
+    {
+      static const std::regex  namergx("ProductName\\:\\t\\t([a-zA-Z]+)\\n",
+                                       std::regex::optimize
+                                       |std::regex::ECMAScript);
+      static const std::regex  versrgx("ProductVersion\\:\\t\\t([0-9]+(\\.[0-9]+)*)\\n",
+                                       std::regex::optimize
+                                       |std::regex::ECMAScript);
+      std::string  rc;
+      FILE  *p = popen("/usr/bin/sw_vers", "r");
+      if (p) {
+        std::string  name, vers, macReleaseName;
+        char        *line = nullptr;
+        size_t       linecap = 0;
+        ssize_t      linelen;
+        while ((linelen = getline(&line, &linecap, p)) > 0) {
+          if (line) {
+            std::string  linestr(line);
+            std::smatch  sm;
+            if (std::regex_match(linestr, sm, versrgx)) {
+              if (sm.size() >= 2) {
+                vers = sm[1].str();
+                macReleaseName = GetMacOSReleaseName(vers);
+              }
+            }
+            else if (std::regex_match(linestr, sm, namergx)) {
+              if (sm.size() == 2) {
+                name = sm[1].str();
+              }
+            }
+            free(line);
+            line = nullptr;
+          }
+          linecap = 0;
+        }
+        pclose(p);
+
+        if ((! name.empty())
+            && (! vers.empty())
+            && (! macReleaseName.empty())) {
+          rc = name + ' ' + vers + " (" + macReleaseName + ")";
+        }
+      }
+      return rc;
+    }
+    
+#else
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    static std::string Uname::GetPrettyName()
+    {
+      std::string  rc;
+      
+      return rc;
+    }
+    
+#endif
+    
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
     Uname::Uname(const struct utsname & u)
         : _utsName({u.sysname,u.nodename,u.release,u.version,u.machine})
-    {}
+    {
+      PrettyName(GetPrettyName());
+    }
 
     //------------------------------------------------------------------------
     //!  
@@ -72,6 +169,7 @@ namespace Dwm {
       return StreamIO::Write(os, _utsName);
     }
 
+    
   }  // namespace McTally
 
 }  // namespace Dwm

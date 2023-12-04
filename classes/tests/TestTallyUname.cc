@@ -65,11 +65,25 @@ static void TestIO()
         UnitAssert(un1 == un2);
       }
     }
-    std::cout << un1.SysName() << '\n'
-              << un1.NodeName() << '\n'
-              << un1.Release() << '\n'
-              << un1.Version() << '\n'
-              << un1.Machine() << '\n';
+  }
+  return;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+static void TestLocalInit()
+{
+  struct utsname   u;
+  memset(&u, 0, sizeof(u));
+  if (UnitAssert(uname(&u) == 0)) {
+    const McTally::Uname  un1(u);
+    UnitAssert(! un1.SysName().empty());
+    UnitAssert(! un1.NodeName().empty());
+    UnitAssert(! un1.Release().empty());
+    UnitAssert(! un1.Version().empty());
+    UnitAssert(! un1.Machine().empty());
+    UnitAssert(! un1.PrettyName().empty());
   }
   return;
 }
@@ -81,6 +95,7 @@ int main(int argc, char *argv[])
 {
   int  rc = 1;
 
+  TestLocalInit();
   TestIO();
   
   if (Assertions::Total().Failed()) {
