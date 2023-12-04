@@ -84,7 +84,7 @@ static void TestLocalInit()
     UnitAssert(! un1.Version().empty());
     UnitAssert(! un1.Machine().empty());
     UnitAssert(! un1.PrettyName().empty());
-    cerr << "PrettyName: " << un1.PrettyName() << '\n';
+    //    cerr << "PrettyName: " << un1.PrettyName() << '\n';
   }
   return;
 }
