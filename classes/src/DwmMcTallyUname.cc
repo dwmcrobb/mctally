@@ -40,6 +40,7 @@
 //---------------------------------------------------------------------------
 
 #include <cstdio>
+#include <fstream>
 #include <map>
 #include <regex>
 
@@ -129,13 +130,29 @@ namespace Dwm {
     }
     
 #else
+    
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
-    static std::string Uname::GetPrettyName()
+    static std::string GetPrettyName()
     {
+      static const std::regex  rgx("PRETTY_NAME=\"([^\"]+)\"",
+                                   std::regex::optimize
+                                   |std::regex::ECMAScript);
       std::string  rc;
-      
+      std::ifstream  is("/etc/os-release");
+      if (is) {
+        std::string  s;
+        while (std::getline(is, s)) {
+          std::smatch  sm;
+          if (std::regex_match(s, sm, rgx)) {
+            if (sm.size() == 2) {
+              rc = sm[1].str();
+              break;
+            }
+          }
+        }
+      }
       return rc;
     }
     
