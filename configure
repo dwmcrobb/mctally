@@ -4171,6 +4171,44 @@ test -n "$target_alias" &&
 
 
 
+  # ===========================================================================
+#  https://www.gnu.org/software/autoconf-archive/ax_check_compile_flag.html
+# ===========================================================================
+#
+# SYNOPSIS
+#
+#   AX_CHECK_COMPILE_FLAG(FLAG, [ACTION-SUCCESS], [ACTION-FAILURE], [EXTRA-FLAGS], [INPUT])
+#
+# DESCRIPTION
+#
+#   Check whether the given FLAG works with the current language's compiler
+#   or gives an error.  (Warnings, however, are ignored)
+#
+#   ACTION-SUCCESS/ACTION-FAILURE are shell commands to execute on
+#   success/failure.
+#
+#   If EXTRA-FLAGS is defined, it is added to the current language's default
+#   flags (e.g. CFLAGS) when the check is done.  The check is thus made with
+#   the flags: "CFLAGS EXTRA-FLAGS FLAG".  This can for example be used to
+#   force the compiler to issue an error when a bad flag is given.
+#
+#   INPUT gives an alternative input source to AC_COMPILE_IFELSE.
+#
+#   NOTE: Implementation based on AX_CFLAGS_GCC_OPTION. Please keep this
+#   macro in sync with AX_CHECK_{PREPROC,LINK}_FLAG.
+#
+# LICENSE
+#
+#   Copyright (c) 2008 Guido U. Draheim <guidod@gmx.de>
+#   Copyright (c) 2011 Maarten Bosmans <mkbosmans@gmail.com>
+#
+#   Copying and distribution of this file, with or without modification, are
+#   permitted in any medium without royalty provided the copyright notice
+#   and this notice are preserved.  This file is offered as-is, without any
+#   warranty.
+
+#serial 6
+
 
 
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking cxx shared flags" >&5
@@ -4350,12 +4388,67 @@ fi
     CXX="clang++"
     CXXFLAGS="${CXXFLAGS} -O2 -stdlib=libc++"
     KVMLIB=""
-    LDFLAGS="${LDFLAGS} -O2 -stdlib=libc++ -std=c++17"
+    LDFLAGS="${LDFLAGS} -O2 -stdlib=libc++ -std=c++20"
     LIBTOOL="glibtool"
     ;;
 esac
 
 echo "host_os ${host_os}"
+
+
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for C++20" >&5
+printf %s "checking for C++20... " >&6; }
+  ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether C++ compiler accepts -std=c++20" >&5
+printf %s "checking whether C++ compiler accepts -std=c++20... " >&6; }
+if test ${ax_cv_check_cxxflags___std_cpp20+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+
+  ax_check_save_flags=$CXXFLAGS
+  CXXFLAGS="$CXXFLAGS  -std=c++20"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"
+then :
+  ax_cv_check_cxxflags___std_cpp20=yes
+else $as_nop
+  ax_cv_check_cxxflags___std_cpp20=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+  CXXFLAGS=$ax_check_save_flags
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cxxflags___std_cpp20" >&5
+printf "%s\n" "$ax_cv_check_cxxflags___std_cpp20" >&6; }
+if test "x$ax_cv_check_cxxflags___std_cpp20" = xyes
+then :
+
+    printf "%s\n" "#define HAVE_CPP20 1" >>confdefs.h
+
+    printf "%s\n" "#define HAVE_CPP17 1" >>confdefs.h
+
+    printf "%s\n" "#define HAVE_CPP11 1" >>confdefs.h
+
+    CXXFLAGS="$CXXFLAGS -std=c++20"
+    LDFLAGS="$LDFLAGS -std=c++20"
+
+else $as_nop
 
 
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for C++17" >&5
@@ -4368,8 +4461,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
   prev_CPPFLAGS="$CXXFLAGS"
   CXXFLAGS="$CXXFLAGS -std=c++17"
-
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
     #include <shared_mutex>
@@ -4487,6 +4579,16 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+  ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+
+
+fi
+
   ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'

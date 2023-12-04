@@ -95,6 +95,7 @@ namespace Dwm {
 
       bool HandleRequest(Request cmd);
       bool SendInstalledPackages(const std::vector<std::string> & regExps);
+      bool SendUname();
       void Run();
     };
     

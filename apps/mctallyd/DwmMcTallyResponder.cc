@@ -54,6 +54,7 @@ extern "C" {
 #include "DwmSysLogger.hh"
 #include "DwmCredencePeer.hh"
 #include "DwmMcTallyServer.hh"
+#include "DwmMcTallyUname.hh"
 #include "DwmMcTallyUtils.hh"
 
 namespace Dwm {
@@ -130,6 +131,27 @@ namespace Dwm {
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
+    bool Responder::SendUname()
+    {
+      bool  rc = false;
+      struct utsname  u;
+      memset(&u, 0, sizeof(u));
+      if (uname(&u) == 0) {
+        Uname  un(u);
+        if (_peer.Send(un)) {
+          rc = true;
+        }
+        else {
+          Syslog(LOG_ERR, "Failed to send Uname to client %s",
+                 _peer.Id().c_str());
+        }
+      }
+      return rc;
+    }
+    
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
     bool Responder::HandleRequest(Request cmd)
     {
       bool  rc = false;
@@ -145,6 +167,9 @@ namespace Dwm {
               Syslog(LOG_ERR, "_peer.Receive(regExps) failed");
             }
           }
+          break;
+        case e_uname:
+          rc = SendUname();
           break;
         default:
           Syslog(LOG_ERR, "Invalid command %hhu from %s", cmd,

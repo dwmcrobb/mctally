@@ -34,37 +34,62 @@
 //===========================================================================
 
 //---------------------------------------------------------------------------
-//!  \file DwmMcTallyRequest.hh
+//!  \file TestTallyUname.cc
 //!  \author Daniel W. McRobb
-//!  \brief Dwm::McTally::Request declaration
+//!  \brief Dwm::McTally::Uname unit tests
 //---------------------------------------------------------------------------
 
-#ifndef _DWMMCTALLYREQUEST_HH_
-#define _DWMMCTALLYREQUEST_HH_
+#include <cstring>
+#include <sstream>
 
-#include <cstdint>
+#include "DwmUnitAssert.hh"
+#include "DwmMcTallyUname.hh"
 
-namespace Dwm {
+using namespace std;
+using namespace Dwm;
 
-  namespace McTally {
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+static void TestIO()
+{
+  struct utsname   u;
+  memset(&u, 0, sizeof(u));
+  if (UnitAssert(uname(&u) == 0)) {
+    const McTally::Uname  un1(u);
+    ostringstream  os;
+    if (UnitAssert(un1.Write(os))) {
+      istringstream  is(os.str());
+      McTally::Uname  un2;
+      if (UnitAssert(un2.Read(is))) {
+        UnitAssert(un1 == un2);
+      }
+    }
+    std::cout << un1.SysName() << '\n'
+              << un1.NodeName() << '\n'
+              << un1.Release() << '\n'
+              << un1.Version() << '\n'
+              << un1.Machine() << '\n';
+  }
+  return;
+}
 
-    //------------------------------------------------------------------------
-    //!  Requests that can be set to @c mctallyd.
-    //!
-    //!  @c e_installedPackages requests a @c map<string,string> of installed
-    //!  software packages whose name matches a regular expression that's
-    //!  sent immediately after the McTallyRequest.
-    //!
-    //!  @c e_uname requests a Uname containing uname information.
-    //------------------------------------------------------------------------
-    enum Request : std::uint8_t {
-      e_installedPackages   = 1,
-      e_uname               = 2,
-      e_buhBye              = 255
-    };
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+int main(int argc, char *argv[])
+{
+  int  rc = 1;
 
-  }  // namespace McTally
+  TestIO();
+  
+  if (Assertions::Total().Failed()) {
+    Assertions::Print(cerr, true);
+  }
+  else {
+    cout << Assertions::Total() << " passed" << endl;
+    rc = 0;
+  }
+  return rc;
 
-}  // namespace Dwm
-
-#endif  // _DWMMCTALLYREQUEST_HH_
+}

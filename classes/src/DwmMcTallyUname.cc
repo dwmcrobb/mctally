@@ -34,37 +34,44 @@
 //===========================================================================
 
 //---------------------------------------------------------------------------
-//!  \file DwmMcTallyRequest.hh
+//!  \file DwmMcTallyUname.cc
 //!  \author Daniel W. McRobb
-//!  \brief Dwm::McTally::Request declaration
+//!  \brief Dwm::McTally::Uname class implementation
 //---------------------------------------------------------------------------
 
-#ifndef _DWMMCTALLYREQUEST_HH_
-#define _DWMMCTALLYREQUEST_HH_
-
-#include <cstdint>
+#include "DwmStreamIO.hh"
+#include "DwmMcTallyUname.hh"
 
 namespace Dwm {
 
   namespace McTally {
 
     //------------------------------------------------------------------------
-    //!  Requests that can be set to @c mctallyd.
-    //!
-    //!  @c e_installedPackages requests a @c map<string,string> of installed
-    //!  software packages whose name matches a regular expression that's
-    //!  sent immediately after the McTallyRequest.
-    //!
-    //!  @c e_uname requests a Uname containing uname information.
+    //!  
     //------------------------------------------------------------------------
-    enum Request : std::uint8_t {
-      e_installedPackages   = 1,
-      e_uname               = 2,
-      e_buhBye              = 255
-    };
+    Uname::Uname(const struct utsname & u)
+        : _utsName({u.sysname,u.nodename,u.release,u.version,u.machine})
+    {}
+
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    std::istream & Uname::Read(std::istream & is)
+    {
+      for (auto & s : _utsName) {
+        s.clear();
+      }
+      return StreamIO::Read(is, _utsName);
+    }
+    
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    std::ostream & Uname::Write(std::ostream & os) const
+    {
+      return StreamIO::Write(os, _utsName);
+    }
 
   }  // namespace McTally
 
 }  // namespace Dwm
-
-#endif  // _DWMMCTALLYREQUEST_HH_

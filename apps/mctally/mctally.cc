@@ -47,6 +47,7 @@ extern "C" {
 
 #include "DwmCredencePeer.hh"
 #include "DwmMcTallyRequest.hh"
+#include "DwmMcTallyUname.hh"
 #include "DwmMcTallyUtils.hh"
 #include "DwmMcTallyVersion.hh"
 
@@ -91,6 +92,67 @@ static bool ShowRemoteVersions(const string & host,
       cerr << "Failed to authenticate with " << host << '\n';
     }
   }
+  else {
+    cerr << "Failed to connect to " << host << '\n';
+  }
+  return rc;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+static bool ShowUname(string host)
+{
+  bool            rc = false;
+  if (host.empty()) {
+    struct utsname  u;
+    memset(&u, 0, sizeof(u));
+    if (0 == uname(&u)) {
+      McTally::Uname  un(u);
+      cout << "sysname:  " << un.SysName() << '\n'
+           << "nodename: " << un.NodeName() << '\n'
+           << "release:  " << un.Release() << '\n'
+           << "version:  " << un.Version() << '\n'
+           << "machine:  " << un.Machine() << '\n';
+      rc = true;
+    }
+    else {
+      cerr << "uname() failed\n";
+    }
+  }
+  else {
+    Credence::Peer  peer;
+    if (peer.Connect(host, 2125)) {
+      Credence::KeyStash   keyStash;
+      Credence::KnownKeys  knownKeys;
+      if (peer.Authenticate(keyStash, knownKeys)) {
+        uint8_t  req = McTally::e_uname;
+        if (peer.Send(req)) {
+          McTally::Uname  un;
+          if (peer.Receive(un)) {
+            cout << "sysname:  " << un.SysName() << '\n'
+                 << "nodename: " << un.NodeName() << '\n'
+                 << "release:  " << un.Release() << '\n'
+                 << "version:  " << un.Version() << '\n'
+                 << "machine:  " << un.Machine() << '\n';
+            rc = true;
+          }
+          else {
+            cerr << "Failed to receive uname from " << host << '\n';
+          }
+        }
+        else {
+          cerr << "Failed to send uname request to " << host << '\n';
+        }
+      }
+      else {
+        cerr << "Authentication with " << host << " failed\n";
+      }
+    }
+    else {
+      cerr << "Failed to connect to " << host << '\n';
+    }
+  }
   return rc;
 }
 
@@ -100,19 +162,32 @@ static bool ShowRemoteVersions(const string & host,
 int main(int argc, char *argv[])
 {
   string       host;
+  bool         getUname = false;
   extern int   optind;
   int          optChar;
 
-  while ((optChar = getopt(argc, argv, "h:")) != -1) {
+  while ((optChar = getopt(argc, argv, "h:u")) != -1) {
     switch (optChar) {
       case 'h':
         host = optarg;
+        break;
+      case 'u':
+        getUname = true;
         break;
       default:
         break;
     }
   }
 
+  if (getUname) {
+    if (ShowUname(host)) {
+      return 0;
+    }
+    else {
+      return 1;
+    }
+  }
+  
   vector<string>  regExps;
   for (int n = optind; n < argc; ++n) {
     regExps.push_back(argv[n]);

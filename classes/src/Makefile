@@ -7,6 +7,7 @@ ALLINC       = -I../include ${DWMINCS}
 OBJFILESNP   = DwmMcTallyConfigLex.o \
                DwmMcTallyConfigParse.o \
                DwmMcTallyServiceConfig.o \
+               DwmMcTallyUname.o \
                DwmMcTallyUtils.o \
                DwmMcTallyVersion.o
 OBJFILES     = $(OBJFILESNP:%=../obj/%)

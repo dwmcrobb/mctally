@@ -6,6 +6,7 @@ AC_CANONICAL_TARGET
 
 dnl  ###  Read some generally useful macros.
 builtin(include, ./dwm.m4)  dnl
+builtin(include, ax_check_compile_flag.m4) dnl
 
 dnl  Set variables for building shared library
 DWM_SET_CXX_SHARED_FLAGS
@@ -39,15 +40,15 @@ case $host_os in
     CXX="clang++"
     CXXFLAGS="${CXXFLAGS} -O2 -stdlib=libc++"
     KVMLIB=""
-    LDFLAGS="${LDFLAGS} -O2 -stdlib=libc++ -std=c++17"
+    LDFLAGS="${LDFLAGS} -O2 -stdlib=libc++ -std=c++20"
     LIBTOOL="glibtool"
     ;;
 esac
 
 echo "host_os ${host_os}"
 
-dnl  Check for C++17
-DWM_CHECK_CPLUSPLUS_17
+dnl  Check for C++20
+DWM_CHECK_CPLUSPLUS_20
 
 DWM_CHECK_NEED_LIBATOMIC
 DWM_CHECK_NEED_LIBRT

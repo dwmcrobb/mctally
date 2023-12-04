@@ -1,5 +1,7 @@
 2023-12-03  Daniel McRobb  <dwm@spark.mcplex.net>
 
+	* Added ability to fetch uname information.
+
 	* configure, configure.ac: Now generate apps/mctallyd/mctallyd.cc
 	just so we can set default config file path according to @prefix@.
 	Generate etc/macos/scripts/preinstall and
