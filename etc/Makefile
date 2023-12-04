@@ -8,7 +8,7 @@ all::
 tarprep: ${TARTARGS} tarprep-${OSNAME}
 
 tarprep-freebsd::
-	${MAKE} -C freebsd/rc.d tarprep
+	${MAKE} -C freebsd tarprep
 
 tarprep-linux::
 	${MAKE} -C linux/systemd/system tarprep

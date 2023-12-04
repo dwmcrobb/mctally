@@ -105,6 +105,8 @@ AC_CONFIG_FILES([etc/macos/scripts/postinstall],
 		[chmod a+x etc/macos/scripts/postinstall])
 AC_CONFIG_FILES([etc/macos/scripts/preinstall],
 		[chmod a+x etc/macos/scripts/preinstall])
+AC_CONFIG_FILES([etc/freebsd/+POST_INSTALL],
+		[chmod a+x etc/freebsd/+POST_INSTALL])
 		 
 dnl AC_CONFIG_COMMANDS([chmod_macos_scripts],
 dnl                    [chmod a+x etc/macos/scripts/postinstall

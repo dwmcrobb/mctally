@@ -109,11 +109,12 @@ static bool ShowUname(string host)
     memset(&u, 0, sizeof(u));
     if (0 == uname(&u)) {
       McTally::Uname  un(u);
-      cout << "sysname:  " << un.SysName() << '\n'
-           << "nodename: " << un.NodeName() << '\n'
-           << "release:  " << un.Release() << '\n'
-           << "version:  " << un.Version() << '\n'
-           << "machine:  " << un.Machine() << '\n';
+      cout << "sysname:    " << un.SysName() << '\n'
+           << "nodename:   " << un.NodeName() << '\n'
+           << "release:    " << un.Release() << '\n'
+           << "version:    " << un.Version() << '\n'
+           << "machine:    " << un.Machine() << '\n'
+           << "prettyname: " << un.PrettyName() << '\n';
       rc = true;
     }
     else {
@@ -130,11 +131,12 @@ static bool ShowUname(string host)
         if (peer.Send(req)) {
           McTally::Uname  un;
           if (peer.Receive(un)) {
-            cout << "sysname:  " << un.SysName() << '\n'
-                 << "nodename: " << un.NodeName() << '\n'
-                 << "release:  " << un.Release() << '\n'
-                 << "version:  " << un.Version() << '\n'
-                 << "machine:  " << un.Machine() << '\n';
+            cout << "sysname:    " << un.SysName() << '\n'
+                 << "nodename:   " << un.NodeName() << '\n'
+                 << "release:    " << un.Release() << '\n'
+                 << "version:    " << un.Version() << '\n'
+                 << "machine:    " << un.Machine() << '\n'
+                 << "prettyname: " << un.PrettyName() << '\n';
             rc = true;
           }
           else {
