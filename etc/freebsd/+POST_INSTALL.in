@@ -1,0 +1,85 @@
+#!/bin/sh
+
+#----------------------------------------------------------------------------
+key_in_keys_file() {
+    keyfile=$1
+    keysfile=$2
+    local kikf="false"
+    if [ -f ${keyfile} ]; then
+        if [ -f ${keysfile} ]; then
+            local key=`cat ${keyfile} | cut -d' ' -f1`
+            if [ -n "${key}" ]; then
+                grep "${key}" ${keysfile} > /dev/null 2>&1
+                if [ $? -eq 0 ]; then
+                    kikf="true"
+                fi
+            fi
+        fi
+    fi
+    echo ${kikf}
+}
+
+#----------------------------------------------------------------------------
+user_known_to_mctallyd () {
+    key_in_keys_file ${USER_KEY} ${MCTALLYD_KNOWN_KEYS}
+}
+
+#----------------------------------------------------------------------------
+mctallyd_known_to_user () {
+    key_in_keys_file ${MCTALLYD_KEY} ${USER_KNOWN_KEYS}
+}
+
+#----------------------------------------------------------------------------
+add_user_to_known_keys () {
+    if [ -f ${USER_KEY} ]; then
+        local key=`cat ${USER_KEY}`
+        echo ${key} >> ${MCTALLYD_KNOWN_KEYS}
+    fi
+}
+
+#----------------------------------------------------------------------------
+add_mctallyd_to_user_known_keys () {
+    if [ -f ${MCTALLYD_KEY} ]; then
+        local key=`cat ${MCTALLYD_KEY}`
+        echo ${key} >> ${USER_KNOWN_KEYS}
+    fi
+}
+
+#----------------------------------------------------------------------------
+#  main
+#----------------------------------------------------------------------------
+export PATH=${PATH}:/usr/local/bin
+
+USER_HOME=`grep ^${SUDO_USER} /etc/passwd | cut -d: -f6`
+USER_KEY=${USER_HOME}/.credence/id_ed25519.pub
+USER_KNOWN_KEYS=${USER_HOME}/.credence/known_keys
+MCTALLYD_KEY=@prefix@/etc/mctallyd/id_ed25519.pub
+MCTALLYD_KNOWN_KEYS=@prefix@/etc/mctallyd/known_keys
+
+#  Create directory for our credence keys if it doesn't exist.
+if [ ! -d @prefix@/etc/mctallyd ]; then
+    mkdir @prefix@/etc/mctallyd
+fi                                                                          
+
+# Check for existing mctallyd key, create if it doesn't exist.
+if [ ! -f ${MCTALLYD_KEY} ]; then
+    credence keygen -i mctallyd@`hostname` -d @prefix@/etc/mctallyd
+fi
+
+# and set up the installation user to use mctally.
+if [ $(user_known_to_mctallyd) = "false" ]; then
+    add_user_to_known_keys
+fi
+if [ $(mctallyd_known_to_user) = "false" ]; then
+    add_mctallyd_to_user_known_keys
+fi
+
+# And restart mctallyd if desired.
+. /etc/rc.conf
+case ${mctallyd_enable} in
+    [Yy][Ee][Ss])
+	/usr/local/etc/rc.d/mctallyd restart
+    ;;
+    *)
+    ;;
+esac
