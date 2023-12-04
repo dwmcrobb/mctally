@@ -78,8 +78,8 @@ fi
 . /etc/rc.conf
 case ${mctallyd_enable} in
     [Yy][Ee][Ss])
-	/usr/local/etc/rc.d/mctallyd restart
-    ;;
+        /usr/local/etc/rc.d/mctallyd restart
+      ;;
     *)
-    ;;
+      ;;
 esac
