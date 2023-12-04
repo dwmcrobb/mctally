@@ -1,0 +1,20 @@
+Note that on macOS, I can get more OS information with 'sw_vers':
+
+  % sw_vers 
+  ProductName:		macOS
+  ProductVersion:	14.1.1
+  BuildVersion:		23B81
+
+The same information from the plist file:
+
+  % plutil -p /System/Library/CoreServices/SystemVersion.plist
+  {
+    "BuildID" => "10A030F0-79C9-11EE-90D9-CD8F192C4375"
+    "iOSSupportVersion" => "17.1"
+    "ProductBuildVersion" => "23B81"
+    "ProductCopyright" => "1983-2023 Apple Inc."
+    "ProductName" => "macOS"
+    "ProductUserVisibleVersion" => "14.1.1"
+    "ProductVersion" => "14.1.1"
+  }
+
