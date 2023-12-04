@@ -1,9 +1,19 @@
+
+============================================================================
+Pretty Name
+-----------
+I'd like to be able to print a 'pretty' release name in the uname.
+On Linux distributions, it looks like I can parse this from /etc/os-release.
+The same is true for FreeBSD.  macOS is the only special one.
+
 Note that on macOS, I can get more OS information with 'sw_vers':
 
   % sw_vers 
   ProductName:		macOS
   ProductVersion:	14.1.1
   BuildVersion:		23B81
+
+Here I'd like to print 'macOS 14.1.1 (Sonoma)'
 
 The same information from the plist file:
 
@@ -17,4 +27,60 @@ The same information from the plist file:
     "ProductUserVisibleVersion" => "14.1.1"
     "ProductVersion" => "14.1.1"
   }
+
+On Ubuntu, I see this in /etc/os-release:
+
+  % cat /etc/os-release
+  PRETTY_NAME="Ubuntu 22.04.2 LTS"
+  NAME="Ubuntu"
+  VERSION_ID="22.04"
+  VERSION="22.04.2 LTS (Jammy Jellyfish)"
+  VERSION_CODENAME=jammy
+  ID=ubuntu
+  ID_LIKE=debian
+  HOME_URL="https://www.ubuntu.com/"
+  SUPPORT_URL="https://help.ubuntu.com/"
+  BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+  PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+  UBUNTU_CODENAME=jammy
+
+On Raspbian, I see this:
+
+  dwm@pi4e:/home/dwm% cat /etc/os-release 
+  PRETTY_NAME="Raspbian GNU/Linux 11 (bullseye)"
+  NAME="Raspbian GNU/Linux"
+  VERSION_ID="11"
+  VERSION="11 (bullseye)"
+  VERSION_CODENAME=bullseye
+  ID=raspbian
+  ID_LIKE=debian
+  HOME_URL="http://www.raspbian.org/"
+  SUPPORT_URL="http://www.raspbian.org/RaspbianForums"
+  BUG_REPORT_URL="http://www.raspbian.org/RaspbianBugs"
+
+On Raspberry Pi OS, I see this:
+
+  dwm@snoopy:/home/dwm% cat /etc/os-release
+  PRETTY_NAME="Debian GNU/Linux 11 (bullseye)"
+  NAME="Debian GNU/Linux"
+  VERSION_ID="11"
+  VERSION="11 (bullseye)"
+  VERSION_CODENAME=bullseye
+  ID=debian
+  HOME_URL="https://www.debian.org/"
+  SUPPORT_URL="https://www.debian.org/support"
+  BUG_REPORT_URL="https://bugs.debian.org/"
+
+On FreeBSD 13.2:
+
+  % cat /etc/os-release
+  NAME=FreeBSD
+  VERSION="13.2-STABLE"
+  VERSION_ID="13.2"
+  ID=freebsd
+  ANSI_COLOR="0;31"
+  PRETTY_NAME="FreeBSD 13.2-STABLE"
+  CPE_NAME="cpe:/o:freebsd:freebsd:13.2"
+  HOME_URL="https://FreeBSD.org/"
+  BUG_REPORT_URL="https://bugs.FreeBSD.org/"
 

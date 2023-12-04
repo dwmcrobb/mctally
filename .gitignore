@@ -4,4 +4,5 @@ config.log
 config.status
 Makefile.vars
 mctally-*.pkg
+mctally_*.deb
 staging/**
