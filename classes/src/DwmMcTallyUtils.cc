@@ -270,8 +270,12 @@ namespace Dwm {
       if (p) {
         vector<regex>  rgxvec;
         for (const auto & regExp : regExps) {
-          rgxvec.emplace(rgxvec.end(),
-                         regex(regExp, regex::ECMAScript | regex::optimize));
+          try {
+            regex  rgx(regExp, regex::ECMAScript | regex::optimize);
+            rgxvec.push_back(rgx);
+          }
+          catch (...) {
+          }
         }
         smatch  sm;
         char  buf[1024] = { 0 };
