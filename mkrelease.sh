@@ -7,7 +7,7 @@ fi
 
 TAGNAME=$1
 
-tagmatch="Mcweather\-[0-9]+\.[0-9]+\.[0-9]+"
+tagmatch="mctally\-[0-9]+\.[0-9]+\.[0-9]+"
 
 TagExists () {
     git describe --tags --exact-match "${TAGNAME}" > /dev/null 2>&1
