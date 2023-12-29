@@ -1,3 +1,10 @@
+2023-12-29  Daniel McRobb  <dwm@spark.mcplex.net>
+
+	* tagged as mctally-0.1.0
+
+	* configure, configure.ac, dwm.m4: Add and use DWM_REQUIRES_DWMPKG
+	macro.
+
 2023-12-03  Daniel McRobb  <dwm@spark.mcplex.net>
 
 	* Added ability to fetch uname information.

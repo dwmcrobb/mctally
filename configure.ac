@@ -57,8 +57,8 @@ AC_SUBST(KVMLIB)
 AC_SUBST(LIBTOOL)
 AC_SUBST(OSLIBS)
 
-DWM_CHECK_LIBDWM
-DWM_CHECK_LIBDWMCREDENCE
+DWM_REQUIRES_DWMPKG(libDwm,0.9.22)
+DWM_REQUIRES_DWMPKG(libDwmCredence,0.1.25)
 
 DWMDIR=`pkg-config --variable=prefix libDwm`
 DWMINCS=`pkg-config --cflags-only-I libDwmCredence libDwm`
@@ -76,7 +76,7 @@ DWM_CHECK_STRTOF()
 
 DWM_PREREQ_PATH(htmlman,share/htmlman,[HTML manpage path])
 
-DWM_SET_PKGVARS(Mcweather,[mctally-0.0.0])
+DWM_SET_PKGVARS(mctally,[mctally-0.0.0])
 DWM_GET_TAG([mctally])
 
 AC_CHECK_PROG([MANDOC], [mandoc], [mandoc], [])

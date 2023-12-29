@@ -1,6 +1,43 @@
-dnl  ###  
-dnl  ###  
-dnl  ###  
+dnl -------------------------------------------------------------------------
+dnl  Turns a version triplet string (e.g. '2.1.5') into an integer that can
+dnl  be used to compare different versions of my software.
+dnl -------------------------------------------------------------------------
+define(DWMPKG_TRIPLET_TO_INTEGER,[
+  dwm_triple_vers_str=$1
+  dwm_triple_vers_maj=${dwm_triple_vers_str%%\.*}
+  dwm_triple_vers_rev=${dwm_triple_vers_str##*.}
+  dwm_triple_vers_min=${dwm_triple_vers_str%?$dwm_triple_vers_rev}
+  dwm_triple_vers_min=${dwm_triple_vers_min##*.}
+  $2=$(((dwm_triple_vers_maj * 1000000) + (dwm_triple_vers_min * 1000) + dwm_triple_vers_rev))
+])
+
+dnl --------------------------------------------------------------------------
+dnl  Checks if there is a pkg-config for $1.  If $2 is given, it is
+dnl  interpreted as a required minimum version of $1 and must be an X.Y.Z
+dnl  triplet (e.g. '1.0.5').  All of my own software follows this convention.
+dnl --------------------------------------------------------------------------
+define(DWM_REQUIRES_DWMPKG,[
+  AC_MSG_CHECKING([for required $1 package])
+  pkg-config --exists $1
+  if test $? -eq 0 ; then
+    dwm_pkg_full_version=$(pkg-config --modversion $1)
+    DWMPKG_TRIPLET_TO_INTEGER([$dwm_pkg_full_version],dwm_pkg_version_installed)
+    if test [$#] -gt 1 ; then
+      DWMPKG_TRIPLET_TO_INTEGER([$2],dwm_pkg_version_minimum)
+      if test ${dwm_pkg_version_installed} -lt ${dwm_pkg_version_minimum} ; then
+         AC_MSG_RESULT([need at least version $2 of $1!!!])
+	 exit 1
+      fi
+    fi
+    AC_MSG_RESULT([found version ${dwm_pkg_full_version}])
+  else
+    AC_MSG_RESULT([not found!!!])
+    exit 1
+  fi
+])
+
+dnl --------------------------------------------------------------------------
+dnl --------------------------------------------------------------------------
 define(DWM_PRESET_PATH,[
   case $1 in
     sbindir)
