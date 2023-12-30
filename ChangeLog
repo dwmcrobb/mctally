@@ -1,3 +1,9 @@
+2023-12-30  dwm  <dwm@nomnom.mcplex.net>
+
+	* tagged as mctally-0.1.3
+
+	* getvers.sh: We're mctally, not Mcweather.
+
 2023-12-30  Daniel W. McRobb  <dwm@nomnom.mcplex.net>
 
 	* tagged as mctally-0.1.2
