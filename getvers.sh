@@ -75,7 +75,7 @@ DwmGetTag() {
     fi
 }
 
-DwmGetTag Mcweather
+DwmGetTag mctally
 
 args=`getopt sv $*`
 set -- $args
