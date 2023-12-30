@@ -44,7 +44,7 @@
 
 #include "DwmGitVersion.hh"
 
-#define DWM_MCTALLY_VERSION "0.0.0"
+#define DWM_MCTALLY_VERSION "0.0.20231230"
 
 namespace Dwm {
 

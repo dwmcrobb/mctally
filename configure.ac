@@ -51,14 +51,13 @@ dnl  Check for C++20
 DWM_CHECK_CPLUSPLUS_20
 
 DWM_CHECK_NEED_LIBATOMIC
-DWM_CHECK_NEED_LIBRT
 
 AC_SUBST(KVMLIB)
 AC_SUBST(LIBTOOL)
 AC_SUBST(OSLIBS)
 
 DWM_REQUIRES_DWMPKG(libDwm,0.9.22)
-DWM_REQUIRES_DWMPKG(libDwmCredence,0.1.25)
+DWM_REQUIRES_DWMPKG(libDwmCredence,0.1.27)
 
 DWMDIR=`pkg-config --variable=prefix libDwm`
 DWMINCS=`pkg-config --cflags-only-I libDwmCredence libDwm`
