@@ -38,7 +38,6 @@ clean::
 
 distclean:: clean
 	${MAKE} -C classes $@
-	${MAKE} -C doc $@
 	${MAKE} -C packaging $@
 	rm -Rf autom4te.cache staging
 	rm -f config.log config.status Makefile.vars

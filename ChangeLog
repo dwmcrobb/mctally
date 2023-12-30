@@ -1,5 +1,8 @@
 2023-12-30  Daniel McRobb  <dwm@thrip.mcplex.net>
 
+	* I don't have a doc directory yet, so don't try to clean it with
+	'distclean' target.
+
 	* tagged as mctally-0.1.1
 
 2023-12-30  Daniel W. McRobb  <dwm@kiva.mcplex.net>
