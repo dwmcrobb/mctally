@@ -41,8 +41,10 @@
 
 #include <iostream>
 
+#include "DwmUnitAssert.hh"
 #include "DwmMcTallyUtils.hh"
 
+using namespace std;
 using namespace Dwm;
 
 //----------------------------------------------------------------------------
@@ -50,15 +52,26 @@ using namespace Dwm;
 //----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-  std::string  vers = McTally::Utils::GetInstalledVersion(argv[1]);
-  if (! vers.empty()) {
-    std::cout << vers << '\n';
+  int  rc = 1;
+  
+#if (defined __APPLE__)
+  std::string  vers = McTally::Utils::GetInstalledVersion("net.mcplex.libDwm");
+#else
+  std::string  vers = McTally::Utils::GetInstalledVersion("libDwm");
+#endif
+  UnitAssert(! vers.empty());
+  
+  std::map<std::string,std::string>  pkgs;
+  if (UnitAssert(McTally::Utils::GetInstalledVersions(".*[Dd]wm.*", pkgs))) {
+    UnitAssert(! pkgs.empty());
   }
 
-  std::map<std::string,std::string>  pkgs;
-  if (McTally::Utils::GetInstalledVersions(argv[2], pkgs)) {
-    for (const auto & pkg : pkgs) {
-      std::cout << pkg.first << ' ' << pkg.second << '\n';
-    }
+  if (Assertions::Total().Failed()) {
+    Assertions::Print(cerr, true);
   }
+  else {
+    cout << Assertions::Total() << " passed" << endl;
+    rc = 0;
+  }
+  return rc;  
 }
