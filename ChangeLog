@@ -1,3 +1,7 @@
+2023-12-30  Daniel W. McRobb  <dwm@kiva.mcplex.net>
+
+	* classes/tests/TestTallyUtils.cc: turn into actual unit tests.
+
 2023-12-30  Daniel McRobb  <dwm@spark.mcplex.net>
 
 	* configure, configure.ac, dwm.m4: Tweak message from
