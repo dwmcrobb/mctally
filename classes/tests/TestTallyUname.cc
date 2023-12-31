@@ -92,12 +92,36 @@ static void TestLocalInit()
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
+static void TestJson()
+{
+  nlohmann::json  j;
+  j["osName"]     = "FreeBSD";
+  j["nodeName"]   = "foo.bar.com";
+  j["release"]    = "13.2-STABLE";
+  j["version"]    = "FreeBSD 13.2-STABLE stable/13-n256964-42b80d160b4d kiva";
+  j["machine"]    = "amd64";
+  j["prettyName"] = "FreeBSD 13.2-STABLE";
+
+  McTally::Uname  un1;
+  if (UnitAssert(un1.FromJson(j))) {
+    McTally::Uname  un2;
+    if (UnitAssert(un2.FromJson(un1.ToJson()))) {
+      UnitAssert(un1 == un2);
+    }
+  }
+  return;
+}
+  
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
   int  rc = 1;
 
   TestLocalInit();
   TestIO();
+  TestJson();
   
   if (Assertions::Total().Failed()) {
     Assertions::Print(cerr, true);
