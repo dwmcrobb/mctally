@@ -48,6 +48,7 @@ extern "C" {
 
 #include <array>
 #include <string>
+#include <nlohmann/json.hpp>
 
 #include "DwmStreamIOCapable.hh"
 
@@ -145,18 +146,35 @@ namespace Dwm {
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
-      std::istream & Read(std::istream & is);
+      std::istream & Read(std::istream & is) override;
 
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
-      std::ostream & Write(std::ostream & os) const;
+      std::ostream & Write(std::ostream & os) const override;
 
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
       bool operator == (const Uname & u) const
       { return _utsName == u._utsName; }
+
+      //----------------------------------------------------------------------
+      //!  Returns a JSON representation of the uname data, which is an
+      //!  object with keys "osName", "nodeName", "release", "version",
+      //!  "machine" and "prettyName".  All values are strings.
+      //----------------------------------------------------------------------
+      nlohmann::json ToJson() const;
+      
+      //----------------------------------------------------------------------
+      //!  If @c j is a JSON object of string values keyed by the keys
+      //!  "osName", "nodeName", "release", "version", "machine" and
+      //!  "prettyName", populates the uname data from @c j and returns
+      //!  true.  Else returns false.  The keys must all be present and the
+      //!  values must all be of string type, but a value can be an empty
+      //!  string.
+      //----------------------------------------------------------------------
+      bool FromJson(const nlohmann::json & j);
       
     private:
       //  [ OSName, NodeName, Release, Version, Machine, PrettyName ]

@@ -39,6 +39,7 @@
 //!  \brief Dwm::McTally::Uname class implementation
 //---------------------------------------------------------------------------
 
+#include <cassert>
 #include <cstdio>
 #include <fstream>
 #include <map>
@@ -53,8 +54,6 @@ namespace Dwm {
 
 #if defined(__APPLE__)
 
-    //------------------------------------------------------------------------
-    //!  
     //------------------------------------------------------------------------
     static std::string GetMacOSReleaseName(const std::string & vers)
     {
@@ -80,8 +79,6 @@ namespace Dwm {
       return rc;
     }
       
-    //------------------------------------------------------------------------
-    //!  
     //------------------------------------------------------------------------
     static std::string GetPrettyName()
     {
@@ -132,8 +129,6 @@ namespace Dwm {
 #else
     
     //------------------------------------------------------------------------
-    //!  
-    //------------------------------------------------------------------------
     static std::string GetPrettyName()
     {
       static const std::regex  rgx("PRETTY_NAME=\"([^\"]+)\"",
@@ -159,16 +154,12 @@ namespace Dwm {
 #endif
     
     //------------------------------------------------------------------------
-    //!  
-    //------------------------------------------------------------------------
     Uname::Uname(const struct utsname & u)
         : _utsName({u.sysname,u.nodename,u.release,u.version,u.machine})
     {
       PrettyName(GetPrettyName());
     }
 
-    //------------------------------------------------------------------------
-    //!  
     //------------------------------------------------------------------------
     std::istream & Uname::Read(std::istream & is)
     {
@@ -179,14 +170,55 @@ namespace Dwm {
     }
     
     //------------------------------------------------------------------------
-    //!  
-    //------------------------------------------------------------------------
     std::ostream & Uname::Write(std::ostream & os) const
     {
       return StreamIO::Write(os, _utsName);
     }
 
-    
+    //------------------------------------------------------------------------
+    nlohmann::json Uname::ToJson() const
+    {
+      nlohmann::json  j;
+      j["osName"]     = _utsName[0];
+      j["nodeName"]   = _utsName[1];
+      j["release"]    = _utsName[2];
+      j["version"]    = _utsName[3];
+      j["machine"]    = _utsName[4];
+      j["prettyName"] = _utsName[5];
+      return j;
+    }
+
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    bool Uname::FromJson(const nlohmann::json & j)
+    {
+      static const std::array<const std::string,6> fields = {
+        "osName", "nodeName", "release", "version", "machine", "prettyName"
+      };
+      assert(fields.size() == _utsName.size());
+      
+      bool  rc = false;
+      for (auto & el : _utsName) {
+        el.clear();
+      }
+      if (j.is_object()) {
+        auto it = fields.begin();
+        ssize_t i = 0;
+        for ( ; it != fields.end(); ++it, ++i) {
+          auto  jit = j.find(*it);
+          if ((jit != j.end()) && jit->is_string()) {
+            _utsName[i] = jit->get<std::string>();
+          }
+          else {
+            break;
+          }
+        }
+        rc = (it == fields.end());
+      }
+      return rc;
+    }
+          
   }  // namespace McTally
 
 }  // namespace Dwm
