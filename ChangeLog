@@ -1,3 +1,11 @@
+2023-12-31  Daniel McRobb  <dwm@spark.mcplex.net>
+
+	* classes/tests/TestTallyUname.cc: added unit tests for JSON
+	functionality.
+
+	* classes/include/DwmMcTallyUname.hh, classes/src/DwmMcTallyUname.cc:
+	Added ToJson() and FromJson() members.
+
 2023-12-30  Daniel W. McRobb  <dwm@nomnom.mcplex.net>
 
 	* tagged as mctally-0.1.3
