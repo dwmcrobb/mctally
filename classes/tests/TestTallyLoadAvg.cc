@@ -1,7 +1,7 @@
 //===========================================================================
 // @(#) $DwmPath$
 //===========================================================================
-//  Copyright (c) Daniel W. McRobb 2023
+//  Copyright (c) Daniel W. McRobb 2024
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@
 #include <sstream>
 
 #include "DwmUnitAssert.hh"
-#include "DwmMcTallyUname.hh"
+#include "DwmMcTallyLoadAvg.hh"
 
 using namespace std;
 using namespace Dwm;
@@ -53,16 +53,15 @@ using namespace Dwm;
 //----------------------------------------------------------------------------
 static void TestIO()
 {
-  struct utsname   u;
-  memset(&u, 0, sizeof(u));
-  if (UnitAssert(uname(&u) == 0)) {
-    const McTally::Uname  un1(u);
+  std::array<double,3>  avgs;
+  if (UnitAssert(getloadavg(avgs.data(), avgs.size()) == avgs.size())) {
+    const McTally::LoadAvg  loadAvg1(avgs);
     ostringstream  os;
-    if (UnitAssert(un1.Write(os))) {
+    if (UnitAssert(loadAvg1.Write(os))) {
       istringstream  is(os.str());
-      McTally::Uname  un2;
-      if (UnitAssert(un2.Read(is))) {
-        UnitAssert(un1 == un2);
+      McTally::LoadAvg  loadAvg2;
+      if (UnitAssert(loadAvg2.Read(is))) {
+        UnitAssert(loadAvg1 == loadAvg2);
       }
     }
   }
@@ -74,17 +73,12 @@ static void TestIO()
 //----------------------------------------------------------------------------
 static void TestLocalInit()
 {
-  struct utsname   u;
-  memset(&u, 0, sizeof(u));
-  if (UnitAssert(uname(&u) == 0)) {
-    const McTally::Uname  un1(u);
-    UnitAssert(! un1.SysName().empty());
-    UnitAssert(! un1.NodeName().empty());
-    UnitAssert(! un1.Release().empty());
-    UnitAssert(! un1.Version().empty());
-    UnitAssert(! un1.Machine().empty());
-    UnitAssert(! un1.PrettyName().empty());
-    //    cerr << "PrettyName: " << un1.PrettyName() << '\n';
+  std::array<double,3>  avgs;
+  if (UnitAssert(getloadavg(avgs.data(), avgs.size()) == avgs.size())) {
+    const McTally::LoadAvg  loadAvg(avgs);
+    UnitAssert(loadAvg.Avg1Min() == avgs[0]);
+    UnitAssert(loadAvg.Avg5Min() == avgs[1]);
+    UnitAssert(loadAvg.Avg15Min() == avgs[2]);
   }
   return;
 }
@@ -95,29 +89,23 @@ static void TestLocalInit()
 static void TestJson()
 {
   nlohmann::json  j;
-  j["osName"]     = "FreeBSD";
-  j["nodeName"]   = "foo.bar.com";
-  j["release"]    = "13.2-STABLE";
-  j["version"]    = "FreeBSD 13.2-STABLE stable/13-n256964-42b80d160b4d kiva";
-  j["machine"]    = "amd64";
-  j["prettyName"] = "FreeBSD 13.2-STABLE";
+  j["load1"]     = 1.1;
+  j["load5"]     = 5.5;
+  j["load15"]    = 15.15;
 
-  McTally::Uname  un1;
-  if (UnitAssert(un1.FromJson(j))) {
-    McTally::Uname  un2;
-    if (UnitAssert(un2.FromJson(un1.ToJson()))) {
-      UnitAssert(un1 == un2);
+  McTally::LoadAvg  loadAvg1;
+  if (UnitAssert(loadAvg1.FromJson(j))) {
+    McTally::LoadAvg  loadAvg2;
+    if (UnitAssert(loadAvg2.FromJson(loadAvg1.ToJson()))) {
+      UnitAssert(loadAvg1 == loadAvg2);
     }
   }
 
   nlohmann::json  j2;
-  //  Intentionally don't populate osName, FromJson(j2) should hence fail.
-  j2["nodeName"]   = "foo.bar.com";
-  j2["release"]    = "13.2-STABLE";
-  j2["version"]    = "FreeBSD 13.2-STABLE stable/13-n256964-42b80d160b4d kiva";
-  j2["machine"]    = "amd64";
-  j2["prettyName"] = "FreeBSD 13.2-STABLE";
-  UnitAssert(! un1.FromJson(j2));
+  //  Intentionally don't populate load1, FromJson(j2) should hence fail.
+  j2["load5"]   = 4.4;
+  j2["load15"]  = 2.2;
+  UnitAssert(! loadAvg1.FromJson(j2));
   
   return;
 }

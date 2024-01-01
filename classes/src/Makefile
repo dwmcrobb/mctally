@@ -6,6 +6,7 @@ LTLINK       = ${LIBTOOL} --mode=link --tag=CXX ${CXX}
 ALLINC       = -I../include ${DWMINCS}
 OBJFILESNP   = DwmMcTallyConfigLex.o \
                DwmMcTallyConfigParse.o \
+               DwmMcTallyLoadAvg.o \
                DwmMcTallyServiceConfig.o \
                DwmMcTallyUname.o \
                DwmMcTallyUtils.o \

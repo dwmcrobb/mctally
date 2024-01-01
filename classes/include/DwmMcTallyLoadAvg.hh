@@ -34,20 +34,16 @@
 //===========================================================================
 
 //---------------------------------------------------------------------------
-//!  \file DwmMcTallyUname.hh
+//!  \file DwmMcTallyLoadAvg.hh
 //!  \author Daniel W. McRobb
-//!  \brief Dwm::McTally::Uname class declaration
+//!  \brief NOT YET DOCUMENTED
 //---------------------------------------------------------------------------
 
-#ifndef _DWMMCTALLYUNAME_HH_
-#define _DWMMCTALLYUNAME_HH_
-
-extern "C" {
-  #include <sys/utsname.h>
-}
+#ifndef _DWMMCTALLYLOADAVG_HH_
+#define _DWMMCTALLYLOADAVG_HH_
 
 #include <array>
-#include <string>
+
 #include <nlohmann/json.hpp>
 
 #include "DwmStreamIOCapable.hh"
@@ -57,92 +53,60 @@ namespace Dwm {
   namespace McTally {
 
     //------------------------------------------------------------------------
-    //!  Encapsulate uname information.  See uname(2|3) and
-    //!  IEEE Std 1003.1-1988 ("POSIX.1").
+    //!  
     //------------------------------------------------------------------------
-    class Uname
+    class LoadAvg
       : public StreamIOCapable
     {
     public:
-      Uname() = default;
-      Uname(const Uname &) = default;
-      Uname(Uname &&) = default;
-      Uname & operator = (const Uname &) = default;
-      Uname & operator = (Uname &&) = default;
-      ~Uname() = default;
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      LoadAvg();
+      
+      LoadAvg(const LoadAvg &) = default;
+      LoadAvg(LoadAvg &&) = default;
+      LoadAvg & operator = (const LoadAvg &) = default;
+      LoadAvg & operator = (LoadAvg &&) = default;
+      ~LoadAvg() = default;
 
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
-      Uname(const struct utsname & u);
-      
-      //----------------------------------------------------------------------
-      //!  
-      //----------------------------------------------------------------------
-      const std::string & SysName() const
-      { return _utsName[0]; }
+      inline LoadAvg(const std::array<double,3> & loadAvgs)
+          : _loadAvgs(loadAvgs)
+      { }
 
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
-      const std::string & SysName(const std::string & sysName)
-      { return _utsName[0] = sysName; }
+      inline double Avg1Min() const  { return std::get<0>(_loadAvgs); }
 
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
-      const std::string & NodeName() const     { return _utsName[1]; }
+      inline double Avg1Min(double a)  { return std::get<0>(_loadAvgs) = a; }
       
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
-      const std::string & NodeName(const std::string & nodeName)
-      { return _utsName[1] = nodeName; }
+      inline double Avg5Min() const  { return std::get<1>(_loadAvgs); }
+      
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      inline double Avg5Min(double a)  { return std::get<1>(_loadAvgs) = a; }
+      
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      inline double Avg15Min() const  { return std::get<2>(_loadAvgs); }
+      
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      inline double Avg15Min(double a)  { return std::get<2>(_loadAvgs) = a; }
 
-      //----------------------------------------------------------------------
-      //!  
-      //----------------------------------------------------------------------
-      const std::string & Release() const     { return _utsName[2]; }
-      
-      //----------------------------------------------------------------------
-      //!  
-      //----------------------------------------------------------------------
-      const std::string & Release(const std::string & release)
-      { return _utsName[2] = release; }
-
-      //----------------------------------------------------------------------
-      //!  
-      //----------------------------------------------------------------------
-      const std::string & Version() const     { return _utsName[3]; }
-      
-      //----------------------------------------------------------------------
-      //!  
-      //----------------------------------------------------------------------
-      const std::string & Version(const std::string & version)
-      { return _utsName[3] = version; }
-
-      //----------------------------------------------------------------------
-      //!  
-      //----------------------------------------------------------------------
-      const std::string & Machine() const     { return _utsName[4]; }
-      
-      //----------------------------------------------------------------------
-      //!  
-      //----------------------------------------------------------------------
-      const std::string & Machine(const std::string & machine)
-      { return _utsName[4] = machine; }
-
-      //----------------------------------------------------------------------
-      //!  
-      //----------------------------------------------------------------------
-      const std::string & PrettyName() const     { return _utsName[5]; }
-      
-      //----------------------------------------------------------------------
-      //!  
-      //----------------------------------------------------------------------
-      const std::string & PrettyName(const std::string & prettyName)
-      { return _utsName[5] = prettyName; }
-      
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
@@ -156,33 +120,25 @@ namespace Dwm {
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
-      bool operator == (const Uname & u) const
-      { return _utsName == u._utsName; }
+      nlohmann::json ToJson() const;
 
       //----------------------------------------------------------------------
-      //!  Returns a JSON representation of the uname data, which is an
-      //!  object with keys "osName", "nodeName", "release", "version",
-      //!  "machine" and "prettyName".  All values are strings.
-      //----------------------------------------------------------------------
-      nlohmann::json ToJson() const;
-      
-      //----------------------------------------------------------------------
-      //!  If @c j is a JSON object of string values keyed by the keys
-      //!  "osName", "nodeName", "release", "version", "machine" and
-      //!  "prettyName", populates the uname data from @c j and returns
-      //!  true.  Else returns false.  The keys must all be present and the
-      //!  values must all be of string type, but a value can be an empty
-      //!  string.
+      //!  
       //----------------------------------------------------------------------
       bool FromJson(const nlohmann::json & j);
-      
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      bool operator == (const LoadAvg & avg) const
+      { return (_loadAvgs == avg._loadAvgs); }
+        
     private:
-      //  [ OSName, NodeName, Release, Version, Machine, PrettyName ]
-      std::array<std::string,6>  _utsName;
+      std::array<double,3>  _loadAvgs;
     };
     
   }  // namespace McTally
 
 }  // namespace Dwm
 
-#endif  // _DWMMCTALLYUNAME_HH_
+#endif  // _DWMMCTALLYLOADAVG_HH_

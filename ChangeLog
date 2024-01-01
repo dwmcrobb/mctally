@@ -1,3 +1,10 @@
+2024-01-01  Daniel McRobb  <dwm@spark.mcplex.net>
+
+	* classes/include/DwmMcTallyLoadAvg.hh,
+	classes/src/DwmMcTallyLoadAvg.cc, classes/tests/TestTallyLoadAvg.cc,
+	classes/tests/Makefile:
+	Add LoadAvg class and unit tests.
+
 2023-12-31  Daniel McRobb  <dwm@spark.mcplex.net>
 
 	* classes/tests/TestTallyUname.cc: added unit tests for JSON
