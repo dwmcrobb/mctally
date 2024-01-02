@@ -1,3 +1,8 @@
+2024-01-02  Daniel McRobb  <dwm@spark.mcplex.net>
+
+	* apps/mctally/mctally.cc: Allow multiple hosts (-h can be repeated
+	on command line).
+
 2024-01-01  Daniel McRobb  <dwm@spark.mcplex.net>
 
 	* classes/include/DwmMcTallyLoadAvg.hh,

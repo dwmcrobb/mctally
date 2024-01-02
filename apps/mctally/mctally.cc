@@ -163,15 +163,15 @@ static bool ShowUname(string host)
 //----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-  string       host;
-  bool         getUname = false;
-  extern int   optind;
-  int          optChar;
+  vector<string>  hosts;
+  bool            getUname = false;
+  extern int      optind;
+  int             optChar;
 
   while ((optChar = getopt(argc, argv, "h:u")) != -1) {
     switch (optChar) {
       case 'h':
-        host = optarg;
+        hosts.push_back(optarg);
         break;
       case 'u':
         getUname = true;
@@ -182,12 +182,13 @@ int main(int argc, char *argv[])
   }
 
   if (getUname) {
-    if (ShowUname(host)) {
-      return 0;
+    for (auto host : hosts) {
+      if (! ShowUname(host)) {
+        return 1;
+      }
+      cout << '\n';
     }
-    else {
-      return 1;
-    }
+    return 0;
   }
   
   vector<string>  regExps;
@@ -195,10 +196,13 @@ int main(int argc, char *argv[])
     regExps.push_back(argv[n]);
   }
 
-  if (! host.empty()) {
-    if (ShowRemoteVersions(host, regExps)) {
-      return 0;
+  if (! hosts.empty()) {
+    for (auto host : hosts) {
+      if (! ShowRemoteVersions(host, regExps)) {
+        return 1;
+      }
     }
+    return 0;
   }
   else {
     map<string,string>  pkgs;
