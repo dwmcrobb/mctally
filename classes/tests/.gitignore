@@ -3,5 +3,6 @@
 .libs/**
 TestTallyInstalledPackages
 TestTallyLoadAvg
+TestTallyLogins
 TestTallyUname
 TestTallyUtils

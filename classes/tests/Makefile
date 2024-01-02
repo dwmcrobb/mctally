@@ -4,6 +4,7 @@ LTLINK       = ${LIBTOOL} --mode=link --tag=CXX ${CXX}
 
 OBJFILES = TestTallyInstalledPackages.o \
            TestTallyLoadAvg.o \
+           TestTallyLogins.o \
            TestTallyUname.o \
            TestTallyUtils.o
 OBJDEPS	 = $(OBJFILES:%.o=deps/%_deps)

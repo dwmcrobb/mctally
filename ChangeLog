@@ -1,5 +1,13 @@
 2024-01-02  Daniel McRobb  <dwm@spark.mcplex.net>
 
+	* classes/include/DwmMcTallyLogins.hh
+	* classes/src/DwmMcTallyLogins.cc
+	* classes/src/Makefile
+	* classes/tests/.gitignore
+	* classes/tests/Makefile
+	* classes/tests/TestTallyLogins.cc
+	Added Logins class and unit tests.
+
 	* classes/include/DwmMcTallyInstalledPackages.hh
 	* classes/src/DwmMcTallyInstalledPackages.cc
 	* classes/src/Makefile
