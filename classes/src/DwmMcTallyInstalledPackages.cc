@@ -99,11 +99,11 @@ namespace Dwm {
       
       size_t  i = 0;
       for ( ; i < ait->size(); ++i) {
-        if (ait[i].is_object()) {
-          auto  pit = ait[i].find("pkg");
-          if ((pit != ait[i].end()) && pit->is_string()) {
-            auto  vit = ait[i].find("ver");
-            if ((vit != ait[i].end()) && vit->is_string()) {
+        if ((*ait)[i].is_object()) {
+          auto  pit = (*ait)[i].find("pkg");
+          if ((pit != (*ait)[i].end()) && pit->is_string()) {
+            auto  vit = (*ait)[i].find("ver");
+            if ((vit != (*ait)[i].end()) && vit->is_string()) {
               _pkgs[pit->get<string>()] = vit->get<string>();
             }
             else { break; }
