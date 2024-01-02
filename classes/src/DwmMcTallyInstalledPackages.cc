@@ -51,23 +51,31 @@ namespace Dwm {
     //------------------------------------------------------------------------
     istream & InstalledPackages::Read(istream & is)
     {
-      return StreamIO::Read(is, _pkgs);
+      if (StreamIO::Read(is, _selector)) {
+        StreamIO::Read(is, _pkgs);
+      }
+      return is;
     }
 
     //------------------------------------------------------------------------
     ostream & InstalledPackages::Write(ostream & os) const
     {
-      return StreamIO::Write(os, _pkgs);
+      if (StreamIO::Write(os, _selector)) {
+        StreamIO::Write(os, _pkgs);
+      }
+      return os;
     }
       
     //------------------------------------------------------------------------
     nlohmann::json InstalledPackages::ToJson() const
     {
-      nlohmann::json  j = nlohmann::json::array();
+      nlohmann::json  j;
+      j["selector"] = _selector;
       size_t  i = 0;
+      j["pkgs"] = nlohmann::json::array();
       for (const auto & pkg : _pkgs) {
-        j[i]["pkg"] = pkg.first;
-        j[i]["ver"] = pkg.second;
+        j["pkgs"][i]["pkg"] = pkg.first;
+        j["pkgs"][i]["ver"] = pkg.second;
         ++i;
       }
       return j;
@@ -78,31 +86,33 @@ namespace Dwm {
     {
       bool  rc = false;
       _pkgs.clear();
-      if (j.is_array()) {
-        size_t  i = 0;
-        for ( ; i < j.size(); ++i) {
-          if (j[i].is_object()) {
-            auto  pit = j[i].find("pkg");
-            if ((pit != j[i].end()) && pit->is_string()) {
-              auto  vit = j[i].find("ver");
-              if ((vit != j[i].end()) && vit->is_string()) {
-                _pkgs[pit->get<string>()] = vit->get<string>();
-              }
-              else {
-                break;
-              }
+
+      if (! j.is_object())                               { return false; }
+
+      auto  ait = j.find("selector");
+      if ((j.end() == ait) || (! ait->is_string()))      { return false; }
+      
+      _selector = ait->get<string>();
+      
+      ait = j.find("pkgs");
+      if ((j.end() == ait) || (! ait->is_array()))       { return false; }
+      
+      size_t  i = 0;
+      for ( ; i < ait->size(); ++i) {
+        if (ait[i].is_object()) {
+          auto  pit = ait[i].find("pkg");
+          if ((pit != ait[i].end()) && pit->is_string()) {
+            auto  vit = ait[i].find("ver");
+            if ((vit != ait[i].end()) && vit->is_string()) {
+              _pkgs[pit->get<string>()] = vit->get<string>();
             }
-            else {
-              break;
-            }
+            else { break; }
           }
-          else {
-            break;
-          }
+          else { break; }
         }
-        rc = (j.size() == i);
+        else { break; }
       }
-      return rc;
+      return (ait->size() == i);
     }
                 
   }  // namespace McTally

@@ -1,7 +1,7 @@
 //===========================================================================
 // @(#) $DwmPath$
 //===========================================================================
-//  Copyright (c) Daniel W. McRobb 2023
+//  Copyright (c) Daniel W. McRobb 2024
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -34,39 +34,28 @@
 //===========================================================================
 
 //---------------------------------------------------------------------------
-//!  \file DwmMcTallyRequest.hh
+//!  \file DwmMcTallyPackageSelector.hh
 //!  \author Daniel W. McRobb
-//!  \brief Dwm::McTally::Request declaration
+//!  \brief NOT YET DOCUMENTED
 //---------------------------------------------------------------------------
 
-#ifndef _DWMMCTALLYREQUEST_HH_
-#define _DWMMCTALLYREQUEST_HH_
+#ifndef _DWMMCTALLYPACKAGESELECTOR_HH_
+#define _DWMMCTALLYPACKAGESELECTOR_HH_
 
-#include <cstdint>
+#include <string>
 
 namespace Dwm {
 
   namespace McTally {
 
     //------------------------------------------------------------------------
-    //!  Requests that can be set to @c mctallyd.
-    //!
-    //!  @c e_installedPackages requests a @c map<string,string> of installed
-    //!  software packages whose name matches a regular expression that's
-    //!  sent immediately after the McTallyRequest.
-    //!
-    //!  @c e_uname requests a Uname containing uname information.
+    //!  Our package selector is just an ECMAScript regular expression in a
+    //!  std::string.
     //------------------------------------------------------------------------
-    enum Request : std::uint8_t {
-      e_none                = 0,
-      e_installedPackages   = 1,
-      e_uname               = 2,
-      e_loadAverages        = 3,
-      e_buhBye              = 255
-    };
-
+    using PackageSelector = std::string;
+      
   }  // namespace McTally
 
 }  // namespace Dwm
 
-#endif  // _DWMMCTALLYREQUEST_HH_
+#endif  // _DWMMCTALLYPACKAGESELECTOR_HH_

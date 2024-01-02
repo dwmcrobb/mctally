@@ -48,6 +48,7 @@
 #include <nlohmann/json.hpp>
 
 #include "DwmStreamIOCapable.hh"
+#include "DwmMcTallyPackageSelector.hh"
 
 namespace Dwm {
 
@@ -60,6 +61,18 @@ namespace Dwm {
       : public StreamIOCapable
     {
     public:
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      inline const PackageSelector & Selector() const
+      { return _selector; }
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      inline const PackageSelector & Selector(const PackageSelector & s)
+      { return (_selector = s); }
+
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
@@ -96,9 +109,13 @@ namespace Dwm {
       //!  
       //----------------------------------------------------------------------
       bool operator == (const InstalledPackages & pkgs) const
-      { return (_pkgs == pkgs._pkgs); }
+      {
+        return ((_selector == pkgs._selector)
+                && (_pkgs == pkgs._pkgs));
+      }
          
     private:
+      PackageSelector                    _selector;
       std::map<std::string,std::string>  _pkgs;
     };
     

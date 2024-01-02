@@ -54,6 +54,7 @@ using namespace Dwm;
 static void TestIO()
 {
   McTally::InstalledPackages  pkgs1;
+  pkgs1.Selector("libDwm.*|mc.*|DwmDns");
   pkgs1.Pkgs()["libDwm"] = "0.0.1";
   pkgs1.Pkgs()["libDwmCredence"] = "0.0.2";
   pkgs1.Pkgs()["mcloc"] = "0.0.3";
@@ -80,13 +81,16 @@ static void TestIO()
 static void TestJson()
 {
   nlohmann::json  j;
-  j[0]["pkg"]     = "libDwm";          j[0]["ver"] = "0.0.1";
-  j[1]["pkg"]     = "libDwmCredence";  j[1]["ver"] = "0.0.2";
-  j[2]["pkg"]     = "mcloc";           j[2]["ver"] = "0.0.3";
-  j[3]["pkg"]     = "mctally";         j[3]["ver"] = "0.0.4";
-  j[4]["pkg"]     = "mcrover";         j[4]["ver"] = "0.1.0";
-  j[5]["pkg"]     = "DwmDns";          j[5]["ver"] = "0.2.0";
-  j[6]["pkg"]     = "mcweather";       j[6]["ver"] = "0.3.0";
+  j["selector"] = "libDwm.*|mc.*|DwmDns";
+  j["pkgs"] = nlohmann::json::array();
+  
+  j["pkgs"][0]["pkg"]     = "libDwm";          j["pkgs"][0]["ver"] = "0.0.1";
+  j["pkgs"][1]["pkg"]     = "libDwmCredence";  j["pkgs"][1]["ver"] = "0.0.2";
+  j["pkgs"][2]["pkg"]     = "mcloc";           j["pkgs"][2]["ver"] = "0.0.3";
+  j["pkgs"][3]["pkg"]     = "mctally";         j["pkgs"][3]["ver"] = "0.0.4";
+  j["pkgs"][4]["pkg"]     = "mcrover";         j["pkgs"][4]["ver"] = "0.1.0";
+  j["pkgs"][5]["pkg"]     = "DwmDns";          j["pkgs"][5]["ver"] = "0.2.0";
+  j["pkgs"][6]["pkg"]     = "mcweather";       j["pkgs"][6]["ver"] = "0.3.0";
   
   McTally::InstalledPackages  pkgs1;
   if (UnitAssert(pkgs1.FromJson(j))) {
