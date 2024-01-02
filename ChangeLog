@@ -1,5 +1,14 @@
 2024-01-02  Daniel McRobb  <dwm@spark.mcplex.net>
 
+	* classes/include/DwmMcTallyInstalledPackages.hh
+	* classes/src/DwmMcTallyInstalledPackages.cc
+	* classes/src/Makefile
+	* classes/tests/.gitignore
+	* classes/tests/Makefile
+	* classes/tests/TestTallyInstalledPackages.cc
+	Added InstalledPackages class and unit tests.  Working my way
+	toward encapsulating a real protocol.
+
 	* apps/mctally/mctally.cc: Allow multiple hosts (-h can be repeated
 	on command line).
 

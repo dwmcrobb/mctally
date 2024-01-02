@@ -2,7 +2,8 @@ include ../../Makefile.vars
 
 LTLINK       = ${LIBTOOL} --mode=link --tag=CXX ${CXX}
 
-OBJFILES = TestTallyLoadAvg.o \
+OBJFILES = TestTallyInstalledPackages.o \
+           TestTallyLoadAvg.o \
            TestTallyUname.o \
            TestTallyUtils.o
 OBJDEPS	 = $(OBJFILES:%.o=deps/%_deps)

@@ -1,6 +1,7 @@
 *~
 *.o
 .libs/**
+TestTallyInstalledPackages
 TestTallyLoadAvg
 TestTallyUname
 TestTallyUtils
