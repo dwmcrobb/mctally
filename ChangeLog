@@ -1,3 +1,7 @@
+2024-01-03  Daniel W. McRobb  <dwm@kiva.mcplex.net>
+
+	* tagged as mctally-0.1.5
+
 2024-01-03  dwm  <dwm@nomnom.mcplex.net>
 
 	* apps/mctally/mctally.cc: Need <iomanip>
