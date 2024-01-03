@@ -43,6 +43,7 @@ extern "C" {
   #include <unistd.h>
 }
 
+#include <iomanip>
 #include <iostream>
 
 #include "DwmCredencePeer.hh"

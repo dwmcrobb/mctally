@@ -45,6 +45,7 @@ extern "C" {
 }
 
 #include <cassert>
+#include <mutex>
 
 #include "DwmStreamIO.hh"
 #include "DwmMcTallyLogins.hh"
