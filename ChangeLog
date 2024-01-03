@@ -1,3 +1,10 @@
+2024-01-03  Daniel McRobb  <dwm@spark.mcplex.net>
+
+	* tagged as mctally-0.1.4
+	
+	* A bunch of work toward a usable protocol.  Now support fetching
+	of active logins, load averages, uname and installed packages.
+
 2024-01-02  Daniel McRobb  <dwm@spark.mcplex.net>
 
 	* classes/include/DwmMcTallyLogins.hh
