@@ -132,8 +132,12 @@ namespace Dwm {
       string       ttypath(sg_devPath + Tty());
       struct stat  sb;
       if (stat(ttypath.c_str(), &sb) == 0 && S_ISCHR(sb.st_mode)) {
+        time_t  now = time((time_t *)0);
         if (sb.st_atime > LoginTime()) {
-          rc = sb.st_atime - LoginTime();
+          rc = now - sb.st_atime;
+        }
+        else if (now >= LoginTime()) {
+          rc = now - LoginTime();
         }
       }
       return rc;
@@ -153,6 +157,11 @@ namespace Dwm {
         }
       }
       endutxent();
+      if (! _entries.empty()) {
+        std::sort(_entries.begin(), _entries.end(),
+                  [] (const auto & a, const auto & b) 
+                  { return a.IdleTime() < b.IdleTime(); });
+      }
       return;
     }
     
