@@ -46,7 +46,7 @@ extern "C" {
 #include <iostream>
 
 #include "DwmCredencePeer.hh"
-#include "DwmMcTallyRequest.hh"
+#include "DwmMcTallyResponse.hh"
 #include "DwmMcTallyUname.hh"
 #include "DwmMcTallyUtils.hh"
 #include "DwmMcTallyVersion.hh"
@@ -58,7 +58,7 @@ using namespace Dwm;
 //!  
 //----------------------------------------------------------------------------
 static bool ShowRemoteVersions(const string & host,
-                               const vector<string> & regExps)
+                               const string & regExp)
 {
   bool            rc = false;
   Credence::Peer  peer;
@@ -66,26 +66,24 @@ static bool ShowRemoteVersions(const string & host,
     Credence::KeyStash   keyStash;
     Credence::KnownKeys  knownKeys;
     if (peer.Authenticate(keyStash, knownKeys)) {
-      uint8_t  req = McTally::e_installedPackages;
+      McTally::Request  req(regExp);
       if (peer.Send(req)) {
-        if (peer.Send(regExps)) {
-          map<string,string>  pkgs;
-          if (peer.Receive(pkgs)) {
-            rc = true;
-            for (const auto & pkg : pkgs) {
+        McTally::Response  response;
+        if (peer.Receive(response)) {
+          if (response.Req().ReqEnum() == McTally::e_installedPackages) {
+            const auto & installedPkgs =
+              std::get<McTally::InstalledPackages>(response.Data());
+            for (const auto & pkg : installedPkgs.Pkgs()) {
               cout << pkg.first << ' ' << pkg.second << '\n';
             }
           }
-          else {
-            cerr << "Failed to received pkg list from " << host << '\n';
-          }
         }
         else {
-          cerr << "Failed to send request to " << host << '\n';
+          cerr << "Failed to received pkg list from " << host << '\n';
         }
       }
       else {
-        cerr << "Failed to send request to " << host << '\n';
+          cerr << "Failed to send request to " << host << '\n';
       }
     }
     else {
@@ -127,17 +125,21 @@ static bool ShowUname(string host)
       Credence::KeyStash   keyStash;
       Credence::KnownKeys  knownKeys;
       if (peer.Authenticate(keyStash, knownKeys)) {
-        uint8_t  req = McTally::e_uname;
+        McTally::Request  req(McTally::e_uname);
         if (peer.Send(req)) {
-          McTally::Uname  un;
-          if (peer.Receive(un)) {
-            cout << "sysname:    " << un.SysName() << '\n'
-                 << "nodename:   " << un.NodeName() << '\n'
-                 << "release:    " << un.Release() << '\n'
-                 << "version:    " << un.Version() << '\n'
-                 << "machine:    " << un.Machine() << '\n'
-                 << "prettyname: " << un.PrettyName() << '\n';
-            rc = true;
+          McTally::Response  response;
+          if (peer.Receive(response)) {
+            if (response.Req().ReqEnum() == McTally::e_uname) {
+              auto const & un =
+                std::get<McTally::Uname>(response.Data());
+              cout << "sysname:    " << un.SysName() << '\n'
+                   << "nodename:   " << un.NodeName() << '\n'
+                   << "release:    " << un.Release() << '\n'
+                   << "version:    " << un.Version() << '\n'
+                   << "machine:    " << un.Machine() << '\n'
+                   << "prettyname: " << un.PrettyName() << '\n';
+              rc = true;
+            }
           }
           else {
             cerr << "Failed to receive uname from " << host << '\n';
@@ -198,7 +200,7 @@ int main(int argc, char *argv[])
 
   if (! hosts.empty()) {
     for (auto host : hosts) {
-      if (! ShowRemoteVersions(host, regExps)) {
+      if (! ShowRemoteVersions(host, regExps.front())) {
         return 1;
       }
     }

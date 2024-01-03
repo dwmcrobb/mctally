@@ -93,8 +93,8 @@ namespace Dwm {
       std::thread           _thread;
       std::atomic<bool>     _running;
 
-      bool HandleRequest(Request cmd);
-      bool SendInstalledPackages(const std::vector<std::string> & regExps);
+      bool HandleRequest(Request request);
+      bool SendInstalledPackages(const std::string & regExp);
       bool SendUname();
       void Run();
     };

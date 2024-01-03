@@ -54,8 +54,9 @@ extern "C" {
 #include "DwmSysLogger.hh"
 #include "DwmCredencePeer.hh"
 #include "DwmMcTallyServer.hh"
-#include "DwmMcTallyUname.hh"
+// #include "DwmMcTallyUname.hh"
 #include "DwmMcTallyUtils.hh"
+#include "DwmMcTallyResponse.hh"
 
 namespace Dwm {
 
@@ -113,12 +114,15 @@ namespace Dwm {
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
-    bool Responder::SendInstalledPackages(const vector<string> & regExps)
+    bool Responder::SendInstalledPackages(const string & regExp)
     {
       bool  rc = false;
-      map<string,string>  pkgs;
-      Utils::GetInstalledVersions(regExps, pkgs);
-      if (_peer.Send(pkgs)) {
+      InstalledPackages  pkgs;
+      Utils::GetInstalledVersions(regExp, pkgs.Pkgs());
+      pkgs.Selector(regExp);
+
+      Response  response(pkgs);
+      if (_peer.Send(response)) {
         rc = true;
       }
       else {
@@ -138,7 +142,8 @@ namespace Dwm {
       memset(&u, 0, sizeof(u));
       if (uname(&u) == 0) {
         Uname  un(u);
-        if (_peer.Send(un)) {
+        Response  response(un);
+        if (_peer.Send(response)) {
           rc = true;
         }
         else {
@@ -152,27 +157,19 @@ namespace Dwm {
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
-    bool Responder::HandleRequest(Request cmd)
+    bool Responder::HandleRequest(Request req)
     {
       bool  rc = false;
 
-      switch (cmd) {
+      switch (req.ReqEnum()) {
         case e_installedPackages:
-          {
-            vector<string>  regExps;
-            if (_peer.Receive(regExps)) {
-              rc = SendInstalledPackages(regExps);
-            }
-            else {
-              Syslog(LOG_ERR, "_peer.Receive(regExps) failed");
-            }
-          }
+          rc = SendInstalledPackages(req.Selector());
           break;
         case e_uname:
           rc = SendUname();
           break;
         default:
-          Syslog(LOG_ERR, "Invalid command %hhu from %s", cmd,
+          Syslog(LOG_ERR, "Invalid command %hhu from %s", req.ReqEnum(),
                  _peer.Id().c_str());
           break;
       }
@@ -186,9 +183,9 @@ namespace Dwm {
     {
       Syslog(LOG_INFO, "Responder started");
       if (_peer.Authenticate(_server.GetKeyStash(), _server.GetKnownKeys())) {
-        Request  cmd;
-        while (_peer.Receive((uint8_t &)cmd)) {
-          if (! HandleRequest(cmd)) {
+        Request  req;
+        while (_peer.Receive(req)) {
+          if (! HandleRequest(req)) {
             break;
           }
         }
