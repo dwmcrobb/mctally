@@ -73,8 +73,9 @@ static bool ShowRemoteVersions(const string & host,
           if (response.Req().ReqEnum() == McTally::e_installedPackages) {
             const auto & installedPkgs =
               std::get<McTally::InstalledPackages>(response.Data());
+            cout << host << ':' << '\n';
             for (const auto & pkg : installedPkgs.Pkgs()) {
-              cout << pkg.first << ' ' << pkg.second << '\n';
+              cout << "  " << pkg.first << ' ' << pkg.second << '\n';
             }
           }
         }
@@ -101,16 +102,19 @@ static bool ShowRemoteVersions(const string & host,
 //----------------------------------------------------------------------------
 static void ShowLoginEntries(const McTally::Logins & logins)
 {
+  ostringstream  oss;
+  oss << setiosflags(ios::left)
+      << "  " << setw(10) << "USER" << ' ' << setw(8) << "TTY" << ' '
+      << setw(16) << "LOGIN_TIME" << ' ' << setw(16) << "IDLE_TIME" << ' '
+      << "FROM\n";
   for (const auto & entry : logins.Entries()) {
-    ostringstream  oss;
-    oss << setiosflags(ios::left);
-    oss << setw(10) << entry.User() << ' '
+    oss << "  " << setw(10) << entry.User() << ' '
         << setw(8) << entry.Tty() << ' '
         << setw(16) << entry.LoginTimeString() << ' '
         << setw(16) << entry.IdleTimeString()
         << entry.FromHost() << '\n';
-    cout << oss.str();
   }
+  cout << oss.str();
   return;
 }
 
@@ -123,6 +127,7 @@ static bool ShowLogins(string host)
   if (host.empty()) {
     McTally::Logins  logins;
     logins.SetFromUtmp();
+    cout << "localhost:\n";
     ShowLoginEntries(logins);
   }
   else {
@@ -138,6 +143,7 @@ static bool ShowLogins(string host)
             if (response.Req().ReqEnum() == McTally::e_logins) {
               auto const & logins =
                 std::get<McTally::Logins>(response.Data());
+              cout << host << ":\n";
               ShowLoginEntries(logins);
               rc = true;
             }
