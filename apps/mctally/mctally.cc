@@ -111,7 +111,7 @@ static void ShowLoginEntries(const McTally::Logins & logins)
     oss << "  " << setw(10) << entry.User() << ' '
         << setw(8) << entry.Tty() << ' '
         << setw(16) << entry.LoginTimeString() << ' '
-        << setw(16) << entry.IdleTimeString()
+        << setw(16) << entry.IdleTimeString() << ' '
         << entry.FromHost() << '\n';
   }
   cout << oss.str();
