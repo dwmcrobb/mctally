@@ -157,6 +157,49 @@ namespace Dwm {
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
+    bool Responder::SendLoadAverages()
+    {
+      bool  rc = false;
+      std::array<double,3>  avgs;
+      if (getloadavg(avgs.data(), avgs.size()) == avgs.size()) {
+        const LoadAvg  loadAvg(avgs);
+        Response  response(loadAvg);
+        if (_peer.Send(response)) {
+          rc = true;
+        }
+        else {
+          Syslog(LOG_ERR, "Failed to send Uname to client %s",
+                 _peer.Id().c_str());
+        }
+      }
+      else {
+        Syslog(LOG_ERR, "Failed to get load averages");
+      }
+      return rc;
+    }
+    
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    bool Responder::SendLogins()
+    {
+      bool  rc = false;
+      Logins  logins;
+      logins.SetFromUtmp();
+      Response  response(logins);
+      if (_peer.Send(response)) {
+        rc = true;
+      }
+      else {
+        Syslog(LOG_ERR, "Failed to send Uname to client %s",
+               _peer.Id().c_str());
+      }
+      return rc;
+  }
+  
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
     bool Responder::HandleRequest(Request req)
     {
       bool  rc = false;
@@ -167,6 +210,12 @@ namespace Dwm {
           break;
         case e_uname:
           rc = SendUname();
+          break;
+        case e_loadAverages:
+          rc = SendLoadAverages();
+          break;
+        case e_logins:
+          rc = SendLogins();
           break;
         default:
           Syslog(LOG_ERR, "Invalid command %hhu from %s", req.ReqEnum(),

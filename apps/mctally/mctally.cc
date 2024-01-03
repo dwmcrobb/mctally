@@ -99,6 +99,70 @@ static bool ShowRemoteVersions(const string & host,
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
+static void ShowLoginEntries(const McTally::Logins & logins)
+{
+  for (const auto & entry : logins.Entries()) {
+    ostringstream  oss;
+    oss << setiosflags(ios::left);
+    oss << setw(10) << entry.User() << ' '
+        << setw(8) << entry.Tty() << ' '
+        << setw(16) << entry.LoginTimeString() << ' '
+        << setw(16) << entry.IdleTimeString()
+        << entry.FromHost() << '\n';
+  }
+  return;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+static bool ShowLogins(string host)
+{
+  bool  rc = false;
+  if (host.empty()) {
+    McTally::Logins  logins;
+    logins.SetFromUtmp();
+    ShowLoginEntries(logins);
+  }
+  else {
+    Credence::Peer  peer;
+    if (peer.Connect(host, 2125)) {
+      Credence::KeyStash   keyStash;
+      Credence::KnownKeys  knownKeys;
+      if (peer.Authenticate(keyStash, knownKeys)) {
+        McTally::Request  req(McTally::e_logins);
+        if (peer.Send(req)) {
+          McTally::Response  response;
+          if (peer.Receive(response)) {
+            if (response.Req().ReqEnum() == McTally::e_logins) {
+              auto const & logins =
+                std::get<McTally::Logins>(response.Data());
+              ShowLoginEntries(logins);
+              rc = true;
+            }
+          }
+          else {
+            cerr << "Failed to receive logins from " << host << '\n';
+          }
+        }
+        else {
+          cerr << "Failed to send uname request to " << host << '\n';
+        }
+      }
+      else {
+        cerr << "Authentication with " << host << " failed\n";
+      }
+    }
+    else {
+      cerr << "Failed to connect to " << host << '\n';
+    }
+  }
+  return rc;
+}
+      
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
 static bool ShowUname(string host)
 {
   bool            rc = false;
@@ -166,14 +230,20 @@ static bool ShowUname(string host)
 int main(int argc, char *argv[])
 {
   vector<string>  hosts;
-  bool            getUname = false;
+  bool            getUname = false, getLogins = false, getLoadAverages = false;
   extern int      optind;
   int             optChar;
 
-  while ((optChar = getopt(argc, argv, "h:u")) != -1) {
+  while ((optChar = getopt(argc, argv, "h:ula")) != -1) {
     switch (optChar) {
+      case 'a':
+        getLoadAverages = true;
+        break;
       case 'h':
         hosts.push_back(optarg);
+        break;
+      case 'l':
+        getLogins = true;
         break;
       case 'u':
         getUname = true;
@@ -191,6 +261,15 @@ int main(int argc, char *argv[])
       cout << '\n';
     }
     return 0;
+  }
+
+  if (getLogins) {
+    for (auto host : hosts) {
+      if (! ShowLogins(host)) {
+        return 1;
+      }
+      cout << '\n';
+    }
   }
   
   vector<string>  regExps;
