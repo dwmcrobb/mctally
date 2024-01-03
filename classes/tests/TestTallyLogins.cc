@@ -72,9 +72,18 @@ static void TestIO()
 //----------------------------------------------------------------------------
 static void TestLocalInit()
 {
+  time_t  now = time((time_t *)0);
   McTally::Logins  logins1;
   logins1.SetFromUtmp();
-  UnitAssert(! logins1.Entries().empty());
+  if (UnitAssert(! logins1.Entries().empty())) {
+    for (const auto & login : logins1.Entries()) {
+      UnitAssert(! login.User().empty());
+      UnitAssert(! login.Tty().empty());
+      // UnitAssert(! login.FromHost().empty());  // empty on local host
+      UnitAssert(login.LoginTime() > 0);
+      UnitAssert(login.LoginTime() <= (now + 5));
+    }
+  }
   return;
 }
 
