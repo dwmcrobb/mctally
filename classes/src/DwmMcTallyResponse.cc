@@ -66,6 +66,10 @@ namespace Dwm {
         : _request(Request::e_installedPackages), _responseData(pkgs)
     {}
 
+    Response::Response(const Logins & logins)
+        : _request(Request::e_logins), _responseData(logins)
+    {}
+    
     //------------------------------------------------------------------------
     std::istream & Response::Read(std::istream & is)
     {
@@ -83,7 +87,7 @@ namespace Dwm {
       }
       return os;
     }
-    
+
   }  // namespace McTally
   
 }  // namespace Dwm

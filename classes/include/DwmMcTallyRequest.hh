@@ -62,6 +62,7 @@ namespace Dwm {
       e_installedPackages   = 1,
       e_uname               = 2,
       e_loadAverages        = 3,
+      e_logins              = 4,
       e_buhBye              = 255
     };
 

@@ -45,6 +45,7 @@
 #include "DwmMcTallyRequest.hh"
 #include "DwmMcTallyInstalledPackages.hh"
 #include "DwmMcTallyLoadAvg.hh"
+#include "DwmMcTallyLogins.hh"
 #include "DwmMcTallyUname.hh"
 
 namespace Dwm {
@@ -68,16 +69,24 @@ namespace Dwm {
       Response(const LoadAvg & avg);
       Response(const Uname & uname);
       Response(const InstalledPackages & pkgs);
+      Response(const Logins & logins);
       
       std::istream & Read(std::istream & is) override;
       std::ostream & Write(std::ostream & os) const override;
-      
+
+      inline bool operator == (const Response & response) const
+      {
+        return ((_request == response._request)
+                && (_responseData == response._responseData));
+      }
+        
     private:
       Request                           _request;
       std::variant<std::monostate,
                    LoadAvg,
                    Uname,
-                   InstalledPackages>   _responseData;
+                   InstalledPackages,
+                   Logins>              _responseData;
     };
     
   }  // namespace McTally

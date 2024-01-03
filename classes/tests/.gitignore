@@ -4,5 +4,6 @@
 TestTallyInstalledPackages
 TestTallyLoadAvg
 TestTallyLogins
+TestTallyResponse
 TestTallyUname
 TestTallyUtils
