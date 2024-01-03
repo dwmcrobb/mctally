@@ -118,6 +118,7 @@ static void TestJson()
     }
   }
 
+  //  Should fail on empty JSON
   nlohmann::json  j2;
   UnitAssert(! logins1.FromJson(j2));
   
