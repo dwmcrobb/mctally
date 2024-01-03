@@ -109,6 +109,7 @@ static void ShowLoginEntries(const McTally::Logins & logins)
         << setw(16) << entry.LoginTimeString() << ' '
         << setw(16) << entry.IdleTimeString()
         << entry.FromHost() << '\n';
+    cout << oss.str();
   }
   return;
 }
@@ -159,7 +160,60 @@ static bool ShowLogins(string host)
   }
   return rc;
 }
-      
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+static bool ShowLoadAverages(string host)
+{
+  bool  rc = false;
+  if (host.empty()) {
+    std::array<double,3>  avgs;
+    if (getloadavg(avgs.data(), avgs.size()) == avgs.size()) {
+      cout << setprecision(5) << setw(6) << avgs.at(0) << ' '
+           << setw(6) << avgs.at(1) << ' '
+           << setw(6) << avgs.at(1) << '\n';
+    }
+  }
+  else {
+    Credence::Peer  peer;
+    if (peer.Connect(host, 2125)) {
+      Credence::KeyStash   keyStash;
+      Credence::KnownKeys  knownKeys;
+      if (peer.Authenticate(keyStash, knownKeys)) {
+        McTally::Request  req(McTally::e_loadAverages);
+        if (peer.Send(req)) {
+          McTally::Response  response;
+          if (peer.Receive(response)) {
+            if (response.Req().ReqEnum() == McTally::e_loadAverages) {
+              auto const & loadAvgs =
+                std::get<McTally::LoadAvg>(response.Data());
+              cout << setprecision(5)
+                   << setw(6) << loadAvgs.Avg1Min() << ' '
+                   << setw(6) << loadAvgs.Avg5Min() << ' '
+                   << setw(6) << loadAvgs.Avg15Min() << '\n';
+              rc = true;
+            }
+          }
+          else {
+            cerr << "Failed to receive load averages from " << host << '\n';
+          }
+        }
+        else {
+          cerr << "Failed to send load averages request to " << host << '\n';
+        }
+      }
+      else {
+        cerr << "Authentication with " << host << " failed\n";
+      }
+    }
+    else {
+      cerr << "Failed to connect to " << host << '\n';
+    }
+  }
+  return rc;
+}
+
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
@@ -254,22 +308,57 @@ int main(int argc, char *argv[])
   }
 
   if (getUname) {
-    for (auto host : hosts) {
-      if (! ShowUname(host)) {
+    if (hosts.empty()) {
+      if (! ShowUname("")) {
         return 1;
       }
       cout << '\n';
+    }
+    else {
+      for (auto host : hosts) {
+        if (! ShowUname(host)) {
+          return 1;
+        }
+        cout << '\n';
+      }
     }
     return 0;
   }
 
   if (getLogins) {
-    for (auto host : hosts) {
-      if (! ShowLogins(host)) {
+    if (hosts.empty()) {
+      if (! ShowLogins("")) {
         return 1;
       }
       cout << '\n';
     }
+    else {
+      for (auto host : hosts) {
+        if (! ShowLogins(host)) {
+          return 1;
+        }
+        cout << '\n';
+      }
+    }
+    return 0;
+  }
+
+  if (getLoadAverages) {
+    if (hosts.empty()) {
+      if (! ShowLoadAverages("")) {
+        return 1;
+      }
+      cout << '\n';
+    }
+    else {
+      for (auto host : hosts) {
+        if (! ShowLoadAverages(host)) {
+          return 1;
+        }
+        cout << '\n';
+      }
+    }
+    return 0;
   }
   
   vector<string>  regExps;
