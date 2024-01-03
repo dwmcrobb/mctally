@@ -59,6 +59,13 @@ namespace Dwm {
       : public StreamIOCapable
     {
     public:
+      using VariantType =
+        std::variant<std::monostate,
+                     LoadAvg,
+                     Uname,
+                     InstalledPackages,
+                     Logins>;
+        
       Response();
       Response(const Response & response) = default;
       Response(Response && response) = default;
@@ -66,27 +73,58 @@ namespace Dwm {
       Response & operator = (Response &&) = default;
       ~Response() = default;
       
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
       Response(const LoadAvg & avg);
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
       Response(const Uname & uname);
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
       Response(const InstalledPackages & pkgs);
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
       Response(const Logins & logins);
-      
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      const VariantType & Data() const  { return _data; }
+        
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      VariantType & Data()  { return _data; }
+        
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
       std::istream & Read(std::istream & is) override;
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
       std::ostream & Write(std::ostream & os) const override;
 
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
       inline bool operator == (const Response & response) const
       {
         return ((_request == response._request)
-                && (_responseData == response._responseData));
+                && (_data == response._data));
       }
-        
+      
     private:
-      Request                           _request;
-      std::variant<std::monostate,
-                   LoadAvg,
-                   Uname,
-                   InstalledPackages,
-                   Logins>              _responseData;
+      Request      _request;
+      VariantType  _data;
     };
     
   }  // namespace McTally

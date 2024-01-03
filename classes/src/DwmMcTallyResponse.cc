@@ -48,33 +48,33 @@ namespace Dwm {
 
     //------------------------------------------------------------------------
     Response::Response()
-        : _request(Request::e_none), _responseData()
+        : _request(Request::e_none), _data()
     {}
 
     //------------------------------------------------------------------------
     Response::Response(const LoadAvg & avg)
-        : _request(Request::e_loadAverages), _responseData(avg)
+        : _request(Request::e_loadAverages), _data(avg)
     {}
 
     //------------------------------------------------------------------------
     Response::Response(const Uname & uname)
-        : _request(Request::e_uname), _responseData(uname)
+        : _request(Request::e_uname), _data(uname)
     {}
 
     //------------------------------------------------------------------------
     Response::Response(const InstalledPackages & pkgs)
-        : _request(Request::e_installedPackages), _responseData(pkgs)
+        : _request(Request::e_installedPackages), _data(pkgs)
     {}
 
     Response::Response(const Logins & logins)
-        : _request(Request::e_logins), _responseData(logins)
+        : _request(Request::e_logins), _data(logins)
     {}
     
     //------------------------------------------------------------------------
     std::istream & Response::Read(std::istream & is)
     {
       if (StreamIO::Read(is, (uint8_t &)_request)) {
-        StreamIO::Read(is, _responseData);
+        StreamIO::Read(is, _data);
       }
       return is;
     }
@@ -83,7 +83,7 @@ namespace Dwm {
     std::ostream & Response::Write(std::ostream & os) const
     {
       if (StreamIO::Write(os, _request)) {
-        StreamIO::Write(os, _responseData);
+        StreamIO::Write(os, _data);
       }
       return os;
     }
