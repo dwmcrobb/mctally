@@ -36,9 +36,10 @@
 //---------------------------------------------------------------------------
 //!  \file DwmMcTallyResponse.cc
 //!  \author Daniel W. McRobb
-//!  \brief NOT YET DOCUMENTED
+//!  \brief Dwm::McTally::Response class implementation
 //---------------------------------------------------------------------------
 
+#include "DwmStreamIO.hh"
 #include "DwmMcTallyResponse.hh"
 
 namespace Dwm {
@@ -46,12 +47,42 @@ namespace Dwm {
   namespace McTally {
 
     //------------------------------------------------------------------------
-    //!  
-    //------------------------------------------------------------------------
     Response::Response()
         : _request(Request::e_none), _responseData()
     {}
+
+    //------------------------------------------------------------------------
+    Response::Response(const LoadAvg & avg)
+        : _request(Request::e_loadAverages), _responseData(avg)
+    {}
+
+    //------------------------------------------------------------------------
+    Response::Response(const Uname & uname)
+        : _request(Request::e_uname), _responseData(uname)
+    {}
+
+    //------------------------------------------------------------------------
+    Response::Response(const InstalledPackages & pkgs)
+        : _request(Request::e_installedPackages), _responseData(pkgs)
+    {}
+
+    //------------------------------------------------------------------------
+    std::istream & Response::Read(std::istream & is)
+    {
+      if (StreamIO::Read(is, (uint8_t &)_request)) {
+        StreamIO::Read(is, _responseData);
+      }
+      return is;
+    }
     
+    //------------------------------------------------------------------------
+    std::ostream & Response::Write(std::ostream & os) const
+    {
+      if (StreamIO::Write(os, _request)) {
+        StreamIO::Write(os, _responseData);
+      }
+      return os;
+    }
     
   }  // namespace McTally
   
