@@ -34,115 +34,73 @@
 //===========================================================================
 
 //---------------------------------------------------------------------------
-//!  \file DwmMcTallyResponse.cc
+//!  \file DwmMcTallyRequest.cc
 //!  \author Daniel W. McRobb
-//!  \brief Dwm::McTally::Response class implementation
+//!  \brief Dwm::McTally::Request class implementation
 //---------------------------------------------------------------------------
 
 #include "DwmStreamIO.hh"
-#include "DwmMcTallyResponse.hh"
+#include "DwmMcTallyRequest.hh"
 
 namespace Dwm {
 
   namespace McTally {
 
     //------------------------------------------------------------------------
-    Response::Response()
-        : _request(e_none), _data()
-    {}
-
-    //------------------------------------------------------------------------
-    Response::Response(const LoadAvg & avg)
-        : _request(e_loadAverages), _data(avg)
-    {}
-
-    //------------------------------------------------------------------------
-    Response::Response(const Uname & uname)
-        : _request(e_uname), _data(uname)
-    {}
-
-    //------------------------------------------------------------------------
-    Response::Response(const InstalledPackages & pkgs)
-        : _request(pkgs.Selector()), _data(pkgs)
-    {}
-
-    //------------------------------------------------------------------------
-    //!  
-    //------------------------------------------------------------------------
-    Response::Response(const Logins & logins)
-        : _request(e_logins), _data(logins)
-    {}
-    
-    //------------------------------------------------------------------------
-    std::istream & Response::Read(std::istream & is)
+    std::istream & Request::Read(std::istream & is)
     {
-      if (_request.Read(is)) {
-        StreamIO::Read(is, _data);
+      _reqEnum = e_none;
+      _selector.clear();
+      if (StreamIO::Read(is, (uint8_t &)_reqEnum)) {
+        if (e_installedPackages == _reqEnum) {
+          StreamIO::Read(is, _selector);
+        }
       }
       return is;
     }
-    
+
     //------------------------------------------------------------------------
-    std::ostream & Response::Write(std::ostream & os) const
+    std::ostream & Request::Write(std::ostream & os) const
     {
-      if (_request.Write(os)) {
-        StreamIO::Write(os, _data);
+      if (StreamIO::Write(os, (const uint8_t &)_reqEnum)) {
+        if (e_installedPackages == _reqEnum) {
+          StreamIO::Write(os, _selector);
+        }
       }
       return os;
     }
 
     //------------------------------------------------------------------------
-    nlohmann::json Response::ToJson() const
+    nlohmann::json Request::ToJson() const
     {
       nlohmann::json  j;
-      j["req"] = _request.ToJson();
-      switch (_request.ReqEnum()) {
-        case e_installedPackages:
-          j["data"] = std::get<InstalledPackages>(_data).ToJson();
-          break;
-        case e_uname:
-          j["data"] = std::get<Uname>(_data).ToJson();
-          break;
-        case e_loadAverages:
-          j["data"] = std::get<LoadAvg>(_data).ToJson();
-          break;
-        case e_logins:
-          j["data"] = std::get<Logins>(_data).ToJson();
-          break;
-        default:
-          break;
+      j["reqEnum"] = _reqEnum;
+      if (e_installedPackages == _reqEnum) {
+        j["selector"] = _selector;
       }
       return j;
     }
-    
+
     //------------------------------------------------------------------------
-    bool Response::FromJson(const nlohmann::json & j)
+    bool Request::FromJson(const nlohmann::json & j)
     {
       bool  rc = false;
+      _reqEnum = e_none;
+      _selector.clear();
+      
       if (j.is_object()) {
-        auto  rit = j.find("req");
-        if ((j.end() != rit)) {
-          Request  req;
-          if (req.FromJson(*rit)) {
-            switch (req.ReqEnum()) {
-              case e_installedPackages:
-                rc = DataFromJson<InstalledPackages>(j, req);
-                break;
-              case e_uname:
-                rc = DataFromJson<Uname>(j, req);
-                break;
-              case e_loadAverages:
-                rc = DataFromJson<LoadAvg>(j, req);
-                break;
-              case e_logins:
-                rc = DataFromJson<Logins>(j, req);
-                break;
-              default:
-                break;
+        auto  eit = j.find("reqEnum");
+        if ((j.end() != eit) && eit->is_number_integer()) {
+          _reqEnum = (RequestEnum)eit->get<uint8_t>();
+          if (e_installedPackages == _reqEnum) {
+            auto  sit = j.find("selector");
+            if ((j.end() != sit) && sit->is_string()) {
+              _selector = sit->get<std::string>();
+              rc = true;
             }
           }
           else {
-            std::cerr << "Failed to load request from JSON\n";
+            rc = true;
           }
         }
       }
@@ -151,5 +109,5 @@ namespace Dwm {
     
     
   }  // namespace McTally
-  
+
 }  // namespace Dwm

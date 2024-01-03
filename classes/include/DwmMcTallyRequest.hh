@@ -44,6 +44,11 @@
 
 #include <cstdint>
 
+#include <nlohmann/json.hpp>
+
+#include "DwmStreamIOCapable.hh"
+#include "DwmMcTallyPackageSelector.hh"
+
 namespace Dwm {
 
   namespace McTally {
@@ -57,7 +62,7 @@ namespace Dwm {
     //!
     //!  @c e_uname requests a Uname containing uname information.
     //------------------------------------------------------------------------
-    enum Request : std::uint8_t {
+    enum RequestEnum : std::uint8_t {
       e_none                = 0,
       e_installedPackages   = 1,
       e_uname               = 2,
@@ -66,6 +71,84 @@ namespace Dwm {
       e_buhBye              = 255
     };
 
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    class Request
+      : public StreamIOCapable
+    {
+    public:
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      Request()
+          : _reqEnum(e_none), _selector()
+      {}
+      
+      Request(const Request &) = default;
+      Request(Request &&) = default;
+      Request & operator = (const Request &) = default;
+      Request & operator = (Request &&) = default;
+      ~Request() = default;
+      
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      Request(RequestEnum reqEnum)
+          : _reqEnum(reqEnum), _selector()
+      {}
+      
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      Request(const PackageSelector & selector)
+          : _reqEnum(e_installedPackages), _selector(selector)
+      {}
+      
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      RequestEnum ReqEnum() const  { return _reqEnum; }
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      PackageSelector Selector() const { return _selector; }
+      
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      std::istream & Read(std::istream & is) override;
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      std::ostream & Write(std::ostream & os) const override;
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      nlohmann::json ToJson() const;
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      bool FromJson(const nlohmann::json & j);
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      bool operator == (const Request & req) const
+      {
+        return ((_reqEnum == req._reqEnum)
+                && (_selector == req._selector));
+      }
+        
+    private:
+      RequestEnum      _reqEnum;
+      PackageSelector  _selector;
+    };
+      
   }  // namespace McTally
 
 }  // namespace Dwm

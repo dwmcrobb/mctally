@@ -41,6 +41,8 @@
 
 #include <variant>
 
+#include <nlohmann/json.hpp>
+
 #include "DwmStreamIOCapable.hh"
 #include "DwmMcTallyRequest.hh"
 #include "DwmMcTallyInstalledPackages.hh"
@@ -96,6 +98,11 @@ namespace Dwm {
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
+      Request Req() const  { return _request; }
+      
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
       const VariantType & Data() const  { return _data; }
         
       //----------------------------------------------------------------------
@@ -113,6 +120,10 @@ namespace Dwm {
       //----------------------------------------------------------------------
       std::ostream & Write(std::ostream & os) const override;
 
+      nlohmann::json ToJson() const;
+
+      bool FromJson(const nlohmann::json & j);
+      
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
@@ -125,6 +136,27 @@ namespace Dwm {
     private:
       Request      _request;
       VariantType  _data;
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      template <typename DT>
+      bool DataFromJson(const nlohmann::json & j, const Request & req)
+      {
+        bool  rc = false;
+
+        auto  dit = j.find("data");
+        if (j.end() != dit) {
+          DT  data;
+          if (data.FromJson(*dit)) {
+            _request = req;
+            _data = data;
+            rc = true;
+          }
+        }
+        return rc;
+      }
+      
     };
     
   }  // namespace McTally

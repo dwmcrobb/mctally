@@ -9,6 +9,7 @@ OBJFILESNP   = DwmMcTallyConfigLex.o \
                DwmMcTallyInstalledPackages.o \
                DwmMcTallyLoadAvg.o \
                DwmMcTallyLogins.o \
+               DwmMcTallyRequest.o \
                DwmMcTallyResponse.o \
                DwmMcTallyServiceConfig.o \
                DwmMcTallyUname.o \

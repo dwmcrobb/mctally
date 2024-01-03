@@ -81,13 +81,72 @@ static void TestLoginsIO()
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
+static void TestLoginsJson()
+{
+  time_t  now = time((time_t *)0);
+  nlohmann::json  loginsj = nlohmann::json::array();
+  loginsj[0]["user"] = "dwm";
+  loginsj[0]["tty"]  = "tty00";
+  loginsj[0]["fromHost"] = "localhost";
+  loginsj[0]["loginTime"] = now - 5;
+  loginsj[0]["idleTime"] = 0;
+  
+  loginsj[1]["user"] = "root";
+  loginsj[1]["tty"]  = "ttys01";
+  loginsj[1]["fromHost"] = "";
+  loginsj[1]["loginTime"] = now - 5;
+  loginsj[1]["idleTime"] = 60;
+
+  nlohmann::json  j;
+  j["req"]["reqEnum"] = Dwm::McTally::e_logins;
+  j["data"] = loginsj;
+  
+  McTally::Response  response1;
+  if (UnitAssert(response1.FromJson(j))) {
+    McTally::Response  response2;
+    if (UnitAssert(response2.FromJson(response1.ToJson()))) {
+      UnitAssert(response1 == response2);
+    }
+  }
+  return;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
 static void TestUnameIO()
 {
   struct utsname   u;
   memset(&u, 0, sizeof(u));
   if (UnitAssert(uname(&u) == 0)) {
     const McTally::Uname  un1(u);
-    IOTestTemplate(un1);
+    McTally::Response  response1(un1);
+    IOTestTemplate(response1);
+  }
+  return;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+static void TestUnameJson()
+{
+  struct utsname   u;
+  memset(&u, 0, sizeof(u));
+  if (UnitAssert(uname(&u) == 0)) {
+    const McTally::Uname  un1(u);
+
+    nlohmann::json  j;
+    j["req"]["reqEnum"] = Dwm::McTally::e_uname;
+    j["data"] = un1.ToJson();
+
+    McTally::Response  response1;
+    if (UnitAssert(response1.FromJson(j))) {
+      McTally::Response  response2;
+      if (UnitAssert(response2.FromJson(response1.ToJson()))) {
+        UnitAssert(response1 == response2);
+      }
+    }
   }
   return;
 }
@@ -101,6 +160,30 @@ static void TestLoadAvgsIO()
   if (UnitAssert(getloadavg(avgs.data(), avgs.size()) == avgs.size())) {
     const McTally::LoadAvg  loadAvg1(avgs);
     IOTestTemplate(loadAvg1);
+  }
+  return;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+static void TestLoadAvgsJson()
+{
+  std::array<double,3>  avgs;
+  if (UnitAssert(getloadavg(avgs.data(), avgs.size()) == avgs.size())) {
+    const McTally::LoadAvg  loadAvg1(avgs);
+
+    nlohmann::json  j;
+    j["req"]["reqEnum"] = McTally::e_loadAverages;
+    j["data"] = loadAvg1.ToJson();
+
+    McTally::Response  response1;
+    if (UnitAssert(response1.FromJson(j))) {
+      McTally::Response  response2;
+      if (UnitAssert(response2.FromJson(response1.ToJson()))) {
+        UnitAssert(response1 == response2);
+      }
+    }
   }
   return;
 }
@@ -128,12 +211,55 @@ static void TestInstalledPackagesIO()
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
+static void TestInstalledPackagesJson()
+{
+  McTally::InstalledPackages  pkgs1;
+  pkgs1.Selector("libDwm.*|mc.*|DwmDns");
+  pkgs1.Pkgs()["libDwm"] = "0.0.1";
+  pkgs1.Pkgs()["libDwmCredence"] = "0.0.2";
+  pkgs1.Pkgs()["mcloc"] = "0.0.3";
+  pkgs1.Pkgs()["mctally"] = "0.0.4";
+  pkgs1.Pkgs()["mcrover"] = "0.1.0";
+  pkgs1.Pkgs()["DwmDns"] = "0.2.0";
+  pkgs1.Pkgs()["mcweather"] = "0.3.0";
+
+  nlohmann::json  j;
+  j["req"]["reqEnum"] = McTally::e_installedPackages;
+  j["req"]["selector"] = pkgs1.Selector();
+  j["data"] = pkgs1.ToJson();
+
+  McTally::Response  response1;
+  if (UnitAssert(response1.FromJson(j))) {
+    McTally::Response  response2;
+    if (UnitAssert(response2.FromJson(response1.ToJson()))) {
+      UnitAssert(response1 == response2);
+    }
+  }
+  return;
+}
+  
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
 static void TestIO()
 {
   TestLoginsIO();
   TestUnameIO();
   TestLoadAvgsIO();
   TestInstalledPackagesIO();
+  
+  return;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+static void TestJson()
+{
+  TestLoginsJson();
+  TestUnameJson();
+  TestLoadAvgsJson();
+  TestInstalledPackagesJson();
   
   return;
 }
@@ -217,7 +343,7 @@ int main(int argc, char *argv[])
 
   //  TestLocalInit();
   TestIO();
-  //  TestJson();
+  TestJson();
   
   if (Assertions::Total().Failed()) {
     Assertions::Print(cerr, true);

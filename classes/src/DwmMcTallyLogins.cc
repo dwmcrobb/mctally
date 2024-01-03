@@ -68,11 +68,72 @@ namespace Dwm {
         User(u->ut_user);
         Tty(u->ut_line);
         FromHost(u->ut_host);
+        time_t  now = time((time_t *)0);
         LoginTime(u->ut_tv.tv_sec);
         IdleTime(GetIdleTime());
       }
     }
 
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    std::string LoginEntry::IdleTimeString() const
+    {
+      std::string  rc;
+      uint64_t     secsRemaining = IdleTime();
+      uint64_t     days = secsRemaining / (24 * 3600);
+      if (days) {
+        rc += std::to_string(days) + 'd';
+        secsRemaining -= days * (24 * 3600);
+      }
+      uint64_t  hours = secsRemaining / 3600;
+      if (hours) {
+        rc += std::to_string(hours) + 'h';
+        secsRemaining -= hours * 3600;
+      }
+      uint64_t  minutes = secsRemaining / 60;
+      if (minutes) {
+        rc += std::to_string(minutes) + 'm';
+        secsRemaining -= minutes * 60;
+      }
+      rc += std::to_string(secsRemaining) + 's';
+      return rc;
+    }
+
+    //------------------------------------------------------------------------
+    std::string LoginEntry::LoginTimeString() const
+    {
+      std::string  rc;
+      time_t       now = time((time_t *)0);
+      time_t       loginTime = LoginTime();
+      if (now >= loginTime) {
+        struct tm  tm;
+        localtime_r(&loginTime, &tm);
+        if ((now - loginTime) < (24 * 3600)) {
+          char  buf[8];
+          if (strftime(buf, sizeof(buf), "%H:%M", &tm)) {
+            rc = buf;
+          }
+        }
+        else if ((now - loginTime) < (7 * 24 * 3600)) {
+          char  buf[16];
+          if (strftime(buf, sizeof(buf), "%a %H:%M", &tm)) {
+            rc = buf;
+          }
+        }
+        else {
+          char  buf[32];
+          if (strftime(buf, sizeof(buf), "%b %d %H:%M", &tm)) {
+            rc = buf;
+          }
+        }
+      }
+      else {
+        rc = "?";
+      }
+      return rc;
+    }
+    
     //------------------------------------------------------------------------
     std::istream & LoginEntry::Read(std::istream & is)
     { return StreamIO::Read(is, _data); }
@@ -122,7 +183,7 @@ namespace Dwm {
       }
       return rc;
     }
-
+      
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
