@@ -1,7 +1,7 @@
 //===========================================================================
 // @(#) $DwmPath$
 //===========================================================================
-//  Copyright (c) Daniel W. McRobb 2023
+//  Copyright (c) Daniel W. McRobb 2023, 2024
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,30 @@ using namespace Dwm;
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
+static vector<string> SplitArg(const string & arg)
+{
+  vector<string>  rc;
+  size_t   startIndex = 0;
+  size_t   foundIndex;
+  while ((foundIndex = arg.find_first_of(',',startIndex)) != string::npos) {
+    string  argpiece = arg.substr(startIndex, foundIndex - startIndex);
+    if (! argpiece.empty()) {
+      rc.push_back(arg.substr(startIndex, foundIndex - startIndex));
+    }
+    startIndex = foundIndex + 1;
+  }
+  if (startIndex < arg.size()) {
+    string  argpiece = arg.substr(startIndex);
+    if (! argpiece.empty()) {
+      rc.push_back(arg.substr(startIndex));
+    }
+  }
+  return rc;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
 static bool ShowRemoteVersions(const string & host,
                                const string & regExp)
 {
@@ -78,6 +102,7 @@ static bool ShowRemoteVersions(const string & host,
             for (const auto & pkg : installedPkgs.Pkgs()) {
               cout << "  " << pkg.first << ' ' << pkg.second << '\n';
             }
+            rc = true;
           }
         }
         else {
@@ -128,8 +153,15 @@ static bool ShowLogins(string host)
   if (host.empty()) {
     McTally::Logins  logins;
     logins.SetFromUtmp();
-    cout << "localhost:\n";
-    ShowLoginEntries(logins);
+    cout << "localhost:";
+    if (! logins.Entries().empty()) {
+      cout << '\n';
+      ShowLoginEntries(logins);
+    }
+    else {
+      cout << " no active logins\n";
+    }
+    rc = true;
   }
   else {
     Credence::Peer  peer;
@@ -144,8 +176,14 @@ static bool ShowLogins(string host)
             if (response.Req().ReqEnum() == McTally::e_logins) {
               auto const & logins =
                 std::get<McTally::Logins>(response.Data());
-              cout << host << ":\n";
-              ShowLoginEntries(logins);
+              cout << host << ":";
+              if (! logins.Entries().empty()) {
+                cout << '\n';
+                ShowLoginEntries(logins);
+              }
+              else {
+                cout << " no active logins\n";
+              }
               rc = true;
             }
           }
@@ -177,9 +215,12 @@ static bool ShowLoadAverages(string host)
   if (host.empty()) {
     std::array<double,3>  avgs;
     if (getloadavg(avgs.data(), avgs.size()) == avgs.size()) {
-      cout << setprecision(5) << setw(6) << avgs.at(0) << ' '
-           << setw(6) << avgs.at(1) << ' '
-           << setw(6) << avgs.at(1) << '\n';
+      cout << setiosflags(ios::left)
+           << "localhost  "
+           << setprecision(5)
+           << setw(6) << fixed << avgs.at(0) << ' '
+           << setw(6) << fixed << avgs.at(1) << ' '
+           << setw(6) << fixed << avgs.at(2) << '\n';
     }
   }
   else {
@@ -195,10 +236,12 @@ static bool ShowLoadAverages(string host)
             if (response.Req().ReqEnum() == McTally::e_loadAverages) {
               auto const & loadAvgs =
                 std::get<McTally::LoadAvg>(response.Data());
-              cout << setprecision(5)
-                   << setw(6) << loadAvgs.Avg1Min() << ' '
-                   << setw(6) << loadAvgs.Avg5Min() << ' '
-                   << setw(6) << loadAvgs.Avg15Min() << '\n';
+              cout << setiosflags(ios::left)
+                   << setw(31) << host << ' '
+                   << setprecision(4)
+                   << setw(6) << fixed << loadAvgs.Avg1Min() << ' '
+                   << setw(6) << fixed << loadAvgs.Avg5Min() << ' '
+                   << setw(6) << fixed << loadAvgs.Avg15Min() << '\n';
               rc = true;
             }
           }
@@ -301,7 +344,12 @@ int main(int argc, char *argv[])
         getLoadAverages = true;
         break;
       case 'h':
-        hosts.push_back(optarg);
+        {
+          vector<string>  newhosts = SplitArg(optarg);
+          for (const auto & newhost : newhosts) {
+            hosts.push_back(newhost);
+          }
+        }
         break;
       case 'l':
         getLogins = true;
@@ -337,14 +385,12 @@ int main(int argc, char *argv[])
       if (! ShowLogins("")) {
         return 1;
       }
-      cout << '\n';
     }
     else {
       for (auto host : hosts) {
         if (! ShowLogins(host)) {
           return 1;
         }
-        cout << '\n';
       }
     }
     return 0;
@@ -355,14 +401,12 @@ int main(int argc, char *argv[])
       if (! ShowLoadAverages("")) {
         return 1;
       }
-      cout << '\n';
     }
     else {
       for (auto host : hosts) {
         if (! ShowLoadAverages(host)) {
           return 1;
         }
-        cout << '\n';
       }
     }
     return 0;
