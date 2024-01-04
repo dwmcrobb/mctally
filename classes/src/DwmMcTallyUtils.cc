@@ -162,6 +162,40 @@ namespace Dwm {
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
+    static bool GetInstalledMacPorts(const string & regExp,
+                                     map<string,string> & pkgs)
+    {
+      bool  rc = false;
+      static const regex  portrgx("([^ ]+)[ ]+\\@([^\\n]+)\\n",
+                                  regex::ECMAScript|regex::optimize);
+      smatch  portsm;
+
+      regex  namergx(regExp, regex::ECMAScript|regex::optimize);
+      string cmd("port echo active");
+      FILE  *p = popen(cmd.c_str(), "r");
+      if (p) {
+        char  buf[1024] = { 0 };
+        while (fgets(buf, sizeof(buf), p)) {
+          string  bufstr(buf);
+          if (regex_match(bufstr, portsm, portrgx)) {
+            if (portsm.size() == 3) {
+              smatch  namesm;
+              string  name("org.macports." + portsm[1].str());
+              if (regex_match(name, namesm, namergx)) {
+                pkgs[name] = portsm[2].str();
+                rc = true;
+              }
+            }
+          }
+        }
+        pclose(p);
+      }
+      return rc;
+    }
+    
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
     static bool GetInstalledVersionsMacOS(const string & regExp,
                                           map<string,string> & pkgs)
     {
@@ -181,7 +215,49 @@ namespace Dwm {
         }
         pclose(p);
       }
+      GetInstalledMacPorts(regExp, pkgs);
       return (! pkgs.empty());
+    }
+
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    static bool GetInstalledMacPorts(const vector<string> & regExps,
+                                     map<string,string> & pkgs)
+    {
+      bool  rc = false;
+      static const regex  portrgx("([^ ]+)[ ]+\\@([^\\n]+)\\n",
+                                  regex::ECMAScript|regex::optimize);
+      smatch  portsm;
+
+      string cmd("port echo active");
+      FILE  *p = popen(cmd.c_str(), "r");
+      if (p) {
+        vector<regex>  rgxvec;
+        for (const auto & regExp : regExps) {
+          rgxvec.emplace(rgxvec.end(),
+                         regex(regExp, regex::ECMAScript | regex::optimize));
+        }
+        char  buf[1024] = { 0 };
+        while (fgets(buf, sizeof(buf), p)) {
+          string  bufstr(buf);
+          if (regex_match(bufstr, portsm, portrgx)) {
+            if (portsm.size() == 3) {
+              smatch  namesm;
+              string  name("org.macports." + portsm[1].str());
+              for (const auto & namergx : rgxvec) {
+                if (regex_match(name, namesm, namergx)) {
+                  pkgs[name] = portsm[2].str();
+                  rc = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+        pclose(p);
+      }
+      return rc;
     }
     
     //------------------------------------------------------------------------
@@ -217,6 +293,7 @@ namespace Dwm {
         }
         pclose(p);
       }
+      GetInstalledMacPorts(regExps, pkgs);
       return (! pkgs.empty());
     }
     
