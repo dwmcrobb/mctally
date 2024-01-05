@@ -1,5 +1,9 @@
 2024-01-04  Daniel McRobb  <dwm@spark.mcplex.net>
 
+	* apps/mctally/mctally.cc: Refactor very ugly code (reduced
+	lines of code by about 50%).  Use a thread per host to avoid
+	waiting for each one serially.
+
 	* classes/src/DwmMcTallyUtils.cc: Catch some regex exceptions.
 
 	* classes/src/DwmMcTallyUtils.cc: include MacPorts in search
