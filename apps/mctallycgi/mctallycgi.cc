@@ -90,8 +90,8 @@ static bool GetPeer(const string & host, Credence::Peer & peer)
 {
   bool  rc = false;
   if (peer.Connect(host, 2125)) {
-    Credence::KeyStash   keyStash;
-    Credence::KnownKeys  knownKeys;
+    Credence::KeyStash   keyStash("/home/www/.credence");
+    Credence::KnownKeys  knownKeys("/home/www/.credence");
     if (peer.Authenticate(keyStash, knownKeys)) {
       rc = true;
     }
@@ -319,7 +319,8 @@ int main(int argc, char *argv[])
   Dwm::SysLogger::MinimumPriority(LOG_ERR);
   Dwm::SysLogger::ShowFileLocation(true);
 
-  cout << "<html>\n"
+  cout << "Content-type: text/html\n\n"
+       << "<html>\n"
        << "<head>\n"
        << "  <style>\n"
        << "    th, td {\n"
