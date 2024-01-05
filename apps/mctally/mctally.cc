@@ -46,6 +46,7 @@ extern "C" {
 #include <iomanip>
 #include <iostream>
 #include <regex>
+#include <thread>
 
 #include "DwmSysLogger.hh"
 #include "DwmCredencePeer.hh"
@@ -109,9 +110,19 @@ static void PrintInstalledPackages(const string & host,
   if (std::holds_alternative<McTally::InstalledPackages>(resp.Data())) {
     const auto & installedPkgs =
       std::get<McTally::InstalledPackages>(resp.Data());
-    cout << host << ":\n";
-    for (const auto & pkg : installedPkgs.Pkgs()) {
-      cout << "  " << pkg.first << ' ' << pkg.second << '\n';
+    cout << host;
+    if (installedPkgs.Pkgs().empty()) {
+      cout << ": no";
+    }
+    cout << " installed packages matching '" << resp.Req().Selector() << "'";
+    if (installedPkgs.Pkgs().empty()) {
+      cout << '\n';
+    }
+    else {
+      cout << "':\n";
+      for (const auto & pkg : installedPkgs.Pkgs()) {
+        cout << "  " << pkg.first << ' ' << pkg.second << '\n';
+      }
     }
   }
   return;
@@ -124,7 +135,7 @@ static void PrintUname(const string & host, const McTally::Response & resp)
 {
   if (std::holds_alternative<McTally::Uname>(resp.Data())) {
     const auto & un = std::get<McTally::Uname>(resp.Data());
-    cout << host << ":\n"
+    cout << host << " uname:\n"
          << "  sysname:    " << un.SysName() << '\n'
          << "  nodename:   " << un.NodeName() << '\n'
          << "  release:    " << un.Release() << '\n'
@@ -142,18 +153,23 @@ static void PrintLoginEntries(const string & host,
                               const McTally::Logins & logins)
 {
   ostringstream  oss;
-  oss << setiosflags(ios::left)
-      << "  " << setw(10) << "USER" << ' ' << setw(8) << "TTY" << ' '
-      << setw(16) << "LOGIN_TIME" << ' ' << setw(16) << "IDLE_TIME" << ' '
-      << "FROM\n";
-  for (const auto & entry : logins.Entries()) {
-    oss << "  " << setw(10) << entry.User() << ' '
-        << setw(8) << entry.Tty() << ' '
-        << setw(16) << entry.LoginTimeString() << ' '
-        << setw(16) << entry.IdleTimeString() << ' '
-        << entry.FromHost() << '\n';
+  if (! logins.Entries().empty()) {
+    oss << setiosflags(ios::left)
+        << "  " << setw(10) << "USER" << ' ' << setw(8) << "TTY" << ' '
+        << setw(16) << "LOGIN_TIME" << ' ' << setw(16) << "IDLE_TIME" << ' '
+        << "FROM\n";
+    for (const auto & entry : logins.Entries()) {
+      oss << "  " << setw(10) << entry.User() << ' '
+          << setw(8) << entry.Tty() << ' '
+          << setw(16) << entry.LoginTimeString() << ' '
+          << setw(16) << entry.IdleTimeString() << ' '
+          << entry.FromHost() << '\n';
+    }
+    cout << host << " active logins:\n" << oss.str();
   }
-  cout << host << ":\n" << oss.str();
+  else {
+    cout << host << ": no active logins\n";
+  }
   return;
 }
 
@@ -178,7 +194,7 @@ static void PrintLoadAverages(const string & host,
   if (std::holds_alternative<McTally::LoadAvg>(resp.Data())) {
     const auto & loadAvgs = std::get<McTally::LoadAvg>(resp.Data());
     cout << setiosflags(ios::left)
-         << setw(31) << host << ' '
+         << setw(40) << host + " load averages: "
          << setprecision(4)
          << setw(6) << fixed << loadAvgs.Avg1Min() << ' '
          << setw(6) << fixed << loadAvgs.Avg5Min() << ' '
@@ -192,17 +208,21 @@ static void PrintLoadAverages(const string & host,
 //----------------------------------------------------------------------------
 static void PrintResponse(const string & host, const McTally::Response & resp)
 {
-  if (resp.Req().ReqEnum() == McTally::e_installedPackages) {
-    PrintInstalledPackages(host, resp);
-  }
-  else if (resp.Req().ReqEnum() == McTally::e_uname) {
-    PrintUname(host, resp);
-  }
-  else if (resp.Req().ReqEnum() == McTally::e_logins) {
-    PrintLogins(host, resp);
-  }
-  else if (resp.Req().ReqEnum() == McTally::e_loadAverages) {
-    PrintLoadAverages(host, resp);
+  switch (resp.Req().ReqEnum()) {
+    case McTally::e_installedPackages:
+      PrintInstalledPackages(host, resp);
+      break;
+    case McTally::e_uname:
+      PrintUname(host, resp);
+      break;
+    case McTally::e_loadAverages:
+      PrintLoadAverages(host, resp);
+      break;
+    case McTally::e_logins:
+      PrintLogins(host, resp);
+      break;
+    default:
+      break;
   }
   return;
 }
@@ -213,6 +233,8 @@ static void PrintResponse(const string & host, const McTally::Response & resp)
 static void PrintResponses(const string & host,
                            const vector<McTally::Response> & responses)
 {
+  static mutex  mtx;
+  lock_guard<mutex>  lock(mtx);
   for (const auto & resp : responses) {
     PrintResponse(host, resp);
   }
@@ -240,6 +262,22 @@ static bool SendReceive(Credence::Peer & peer,
   }
           
   return (requests.size() == responses.size());
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+static void PeerThread(string host, const vector<McTally::Request> & requests)
+{
+  Credence::Peer  peer;
+  if (GetPeer(host, peer)) {
+    vector<McTally::Response>  responses;
+    if (SendReceive(peer, requests, responses)) {
+      PrintResponses(host, responses);
+    }
+    peer.Disconnect();
+  }
+  return;
 }
 
 //----------------------------------------------------------------------------
@@ -280,6 +318,10 @@ int main(int argc, char *argv[])
     }
   }
 
+  if (hosts.empty()) {
+    hosts.push_back("localhost");
+  }
+
   vector<string>  regExps;
   for (int n = optind; n < argc; ++n) {
     try {
@@ -288,13 +330,19 @@ int main(int argc, char *argv[])
     }
     catch (...) {
       cerr << "Bad regular expression '" << argv[n] << "'\n";
+      return 1;
     }
   }
-  
-  if (hosts.empty()) {
-    hosts.push_back("localhost");
-  }
+
+  vector<std::thread>  peerThreads;
   for (const auto & host : hosts) {
+    peerThreads.emplace_back(thread(PeerThread, host, std::ref(requests)));
+  }
+  for (auto & peerThread : peerThreads) {
+    peerThread.join();
+  }
+  
+#if 0
     Credence::Peer  peer;
     if (GetPeer(host, peer)) {
       vector<McTally::Response>  responses;
@@ -304,6 +352,7 @@ int main(int argc, char *argv[])
       peer.Disconnect();
     }
   }
+#endif
   
   return 0;
 }
