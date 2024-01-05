@@ -68,6 +68,7 @@ int main(int argc, char *argv[])
 
   uint64_t  uptime = McTally::Utils::GetUptime();
   UnitAssert(uptime > 0);
+  cerr << "uptime: " << uptime << '\n';
   
   if (Assertions::Total().Failed()) {
     Assertions::Print(cerr, true);
