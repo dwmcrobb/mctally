@@ -1,3 +1,13 @@
+2024-01-04  Daniel McRobb  <dwm@spark.mcplex.net>
+
+	* classes/src/DwmMcTallyUtils.cc: Catch some regex exceptions.
+
+	* classes/src/DwmMcTallyUtils.cc: include MacPorts in search
+	for local packages on macOS.  Prefix them with 'org.macports.'.
+
+	* apps/mctally/mctally.cc: Allow multiple hosts (separated by
+	commas) to be specified in each -h command line optarg.
+
 2024-01-03  Daniel W. McRobb  <dwm@kiva.mcplex.net>
 
 	* tagged as mctally-0.1.5
