@@ -1,4 +1,4 @@
-APPS      = mctally mctallyd
+APPS      = mctally mctallyd mctallycgi
 APPSCLEAN = $(APPS:%=%-clean)
 DISTCLEAN = $(APPS:%=%-distclean)
 TARPREP   = $(APPS:%=%-tarprep)
