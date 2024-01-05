@@ -1,7 +1,7 @@
 //===========================================================================
 // @(#) $DwmPath$
 //===========================================================================
-//  Copyright (c) Daniel W. McRobb 2023
+//  Copyright (c) Daniel W. McRobb 2023, 2024
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,15 @@
 //---------------------------------------------------------------------------
 //!  \file DwmMcTallyUtils.cc
 //!  \author Daniel W. McRobb
-//!  \brief NOT YET DOCUMENTED
+//!  \brief Dwm::McTally::Utils class implementation
 //---------------------------------------------------------------------------
+
+#if defined(__APPLE__) || defined(__FreeBSD__)
+extern "C" {
+  #include <sys/types.h>
+  #include <sys/sysctl.h>
+}
+#endif
 
 #include <cctype>
 #include <cstdio>
@@ -515,7 +522,30 @@ namespace Dwm {
       return GetInstalledVersionsDebian(regExps, pkgs);
 #endif
     }
-    
+
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    uint64_t Utils::GetUptime()
+    {
+      uint64_t  rc = 0;
+#if defined(__APPLE__) || defined(__FreeBSD__)
+      struct timeval  tv;
+      size_t          tvsize = sizeof(tv);
+      if (sysctlbyname("kern.boottime", &tv, &tvsize, nullptr, 0) == 0) {
+        time_t  now = time((time_t *)0);
+        if (now > tv.tv_sec) {
+          rc = now - tv.tv_sec;
+        }
+      }
+#elif defined(__linux__)
+      ifstream  is("/proc/uptime");
+      if (is) {
+        is >> rc;
+      }
+#endif
+      return rc;
+    }
     
   }  // namespace McTally
 

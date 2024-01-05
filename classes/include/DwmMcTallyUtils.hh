@@ -68,10 +68,15 @@ namespace Dwm {
       GetInstalledVersions(const std::string & regExp,
                            std::map<std::string,std::string> & pkgs);
 
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
       static bool
       GetInstalledVersions(const std::vector<std::string> & regExp,
                            std::map<std::string,std::string> & pkgs);
-      };
+
+      static uint64_t GetUptime();
+    };
     
   }  // namespace McTally
 
