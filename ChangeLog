@@ -1,5 +1,8 @@
 2024-01-05  Daniel W. McRobb  <dwm@www.mcplex.net>
 
+	* apps/mctallycgi/mctallycgi.cc: Hardcode key directory path.
+	Don't forget to emit Content-type.
+
 	* tagged as mctally-0.1.6
 
 	* Added apps/mctalycgi for my own purposes.
