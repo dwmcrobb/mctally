@@ -44,7 +44,8 @@
 #include <cstring>
 #include <iostream>
 #include <regex>
-    
+
+#include "DwmSysLogger.hh"
 #include "DwmMcTallyUtils.hh"
 
 namespace Dwm {
@@ -169,8 +170,14 @@ namespace Dwm {
       static const regex  portrgx("([^ ]+)[ ]+\\@([^\\n]+)\\n",
                                   regex::ECMAScript|regex::optimize);
       smatch  portsm;
-
-      regex  namergx(regExp, regex::ECMAScript|regex::optimize);
+      regex  namergx;
+      try {
+        namergx = regex(regExp, regex::ECMAScript|regex::optimize);
+      }
+      catch (...) {
+        Syslog(LOG_ERR,"Bad regular expression '%s'", regExp.c_str());
+        return false;
+      }
       string cmd("port echo active");
       FILE  *p = popen(cmd.c_str(), "r");
       if (p) {
@@ -230,14 +237,23 @@ namespace Dwm {
                                   regex::ECMAScript|regex::optimize);
       smatch  portsm;
 
+      vector<regex>  rgxvec;
+      for (const auto & regExp : regExps) {
+        try {
+          regex  rgx(regExp, regex::ECMAScript | regex::optimize);
+          rgxvec.push_back(rgx);
+        }
+        catch (...) {
+          Syslog(LOG_ERR, "Bad regular expression '%s'", regExp.c_str());
+        }
+      }
+      if (rgxvec.empty()) {
+        return false;
+      }
+      
       string cmd("port echo active");
       FILE  *p = popen(cmd.c_str(), "r");
       if (p) {
-        vector<regex>  rgxvec;
-        for (const auto & regExp : regExps) {
-          rgxvec.emplace(rgxvec.end(),
-                         regex(regExp, regex::ECMAScript | regex::optimize));
-        }
         char  buf[1024] = { 0 };
         while (fgets(buf, sizeof(buf), p)) {
           string  bufstr(buf);
@@ -272,8 +288,13 @@ namespace Dwm {
         char    buf[1024] = { 0 };
         vector<regex>  rgxvec;
         for (const auto & regExp : regExps) {
-          rgxvec.emplace(rgxvec.end(),
-                         regex(regExp, regex::ECMAScript | regex::optimize));
+          try {
+            regex  rgx(regExp, regex::ECMAScript | regex::optimize);
+            rgxvec.push_back(rgx);
+          }
+          catch (...) {
+            Syslog(LOG_ERR, "Bad regular expression '%s'", regExp.c_str());
+          }
         }
         smatch  sm;
         while (fgets(buf, sizeof(buf), p)) {
