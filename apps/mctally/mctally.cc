@@ -45,7 +45,9 @@ extern "C" {
 
 #include <iomanip>
 #include <iostream>
+#include <regex>
 
+#include "DwmSysLogger.hh"
 #include "DwmCredencePeer.hh"
 #include "DwmMcTallyResponse.hh"
 #include "DwmMcTallyUname.hh"
@@ -82,43 +84,18 @@ static vector<string> SplitArg(const string & arg)
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
-static bool ShowRemoteVersions(const string & host,
-                               const string & regExp)
+static bool GetPeer(const string & host, Credence::Peer & peer)
 {
-  bool            rc = false;
-  Credence::Peer  peer;
+  bool  rc = false;
   if (peer.Connect(host, 2125)) {
     Credence::KeyStash   keyStash;
     Credence::KnownKeys  knownKeys;
     if (peer.Authenticate(keyStash, knownKeys)) {
-      McTally::Request  req(regExp);
-      if (peer.Send(req)) {
-        McTally::Response  response;
-        if (peer.Receive(response)) {
-          if (response.Req().ReqEnum() == McTally::e_installedPackages) {
-            const auto & installedPkgs =
-              std::get<McTally::InstalledPackages>(response.Data());
-            cout << host << ':' << '\n';
-            for (const auto & pkg : installedPkgs.Pkgs()) {
-              cout << "  " << pkg.first << ' ' << pkg.second << '\n';
-            }
-            rc = true;
-          }
-        }
-        else {
-          cerr << "Failed to received pkg list from " << host << '\n';
-        }
-      }
-      else {
-          cerr << "Failed to send request to " << host << '\n';
-      }
+      rc = true;
     }
     else {
-      cerr << "Failed to authenticate with " << host << '\n';
+      peer.Disconnect();
     }
-  }
-  else {
-    cerr << "Failed to connect to " << host << '\n';
   }
   return rc;
 }
@@ -126,7 +103,43 @@ static bool ShowRemoteVersions(const string & host,
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
-static void ShowLoginEntries(const McTally::Logins & logins)
+static void PrintInstalledPackages(const string & host,
+                                   const McTally::Response & resp)
+{
+  if (std::holds_alternative<McTally::InstalledPackages>(resp.Data())) {
+    const auto & installedPkgs =
+      std::get<McTally::InstalledPackages>(resp.Data());
+    cout << host << ":\n";
+    for (const auto & pkg : installedPkgs.Pkgs()) {
+      cout << "  " << pkg.first << ' ' << pkg.second << '\n';
+    }
+  }
+  return;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+static void PrintUname(const string & host, const McTally::Response & resp)
+{
+  if (std::holds_alternative<McTally::Uname>(resp.Data())) {
+    const auto & un = std::get<McTally::Uname>(resp.Data());
+    cout << host << ":\n"
+         << "  sysname:    " << un.SysName() << '\n'
+         << "  nodename:   " << un.NodeName() << '\n'
+         << "  release:    " << un.Release() << '\n'
+         << "  version:    " << un.Version() << '\n'
+         << "  machine:    " << un.Machine() << '\n'
+         << "  prettyname: " << un.PrettyName() << '\n';
+  }
+  return;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+static void PrintLoginEntries(const string & host,
+                              const McTally::Logins & logins)
 {
   ostringstream  oss;
   oss << setiosflags(ios::left)
@@ -140,192 +153,93 @@ static void ShowLoginEntries(const McTally::Logins & logins)
         << setw(16) << entry.IdleTimeString() << ' '
         << entry.FromHost() << '\n';
   }
-  cout << oss.str();
+  cout << host << ":\n" << oss.str();
   return;
 }
 
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
-static bool ShowLogins(string host)
+static void PrintLogins(const string & host, const McTally::Response & resp)
 {
-  bool  rc = false;
-  if (host.empty()) {
-    McTally::Logins  logins;
-    logins.SetFromUtmp();
-    cout << "localhost:";
-    if (! logins.Entries().empty()) {
-      cout << '\n';
-      ShowLoginEntries(logins);
-    }
-    else {
-      cout << " no active logins\n";
-    }
-    rc = true;
+  if (std::holds_alternative<McTally::Logins>(resp.Data())) {
+    const auto & logins = std::get<McTally::Logins>(resp.Data());
+    PrintLoginEntries(host, logins);
   }
-  else {
-    Credence::Peer  peer;
-    if (peer.Connect(host, 2125)) {
-      Credence::KeyStash   keyStash;
-      Credence::KnownKeys  knownKeys;
-      if (peer.Authenticate(keyStash, knownKeys)) {
-        McTally::Request  req(McTally::e_logins);
-        if (peer.Send(req)) {
-          McTally::Response  response;
-          if (peer.Receive(response)) {
-            if (response.Req().ReqEnum() == McTally::e_logins) {
-              auto const & logins =
-                std::get<McTally::Logins>(response.Data());
-              cout << host << ":";
-              if (! logins.Entries().empty()) {
-                cout << '\n';
-                ShowLoginEntries(logins);
-              }
-              else {
-                cout << " no active logins\n";
-              }
-              rc = true;
-            }
-          }
-          else {
-            cerr << "Failed to receive logins from " << host << '\n';
-          }
-        }
-        else {
-          cerr << "Failed to send uname request to " << host << '\n';
-        }
-      }
-      else {
-        cerr << "Authentication with " << host << " failed\n";
-      }
-    }
-    else {
-      cerr << "Failed to connect to " << host << '\n';
-    }
-  }
-  return rc;
+  return;
 }
 
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
-static bool ShowLoadAverages(string host)
+static void PrintLoadAverages(const string & host,
+                              const McTally::Response & resp)
 {
-  bool  rc = false;
-  if (host.empty()) {
-    std::array<double,3>  avgs;
-    if (getloadavg(avgs.data(), avgs.size()) == avgs.size()) {
-      cout << setiosflags(ios::left)
-           << "localhost  "
-           << setprecision(5)
-           << setw(6) << fixed << avgs.at(0) << ' '
-           << setw(6) << fixed << avgs.at(1) << ' '
-           << setw(6) << fixed << avgs.at(2) << '\n';
-    }
+  if (std::holds_alternative<McTally::LoadAvg>(resp.Data())) {
+    const auto & loadAvgs = std::get<McTally::LoadAvg>(resp.Data());
+    cout << setiosflags(ios::left)
+         << setw(31) << host << ' '
+         << setprecision(4)
+         << setw(6) << fixed << loadAvgs.Avg1Min() << ' '
+         << setw(6) << fixed << loadAvgs.Avg5Min() << ' '
+         << setw(6) << fixed << loadAvgs.Avg15Min() << '\n';
   }
-  else {
-    Credence::Peer  peer;
-    if (peer.Connect(host, 2125)) {
-      Credence::KeyStash   keyStash;
-      Credence::KnownKeys  knownKeys;
-      if (peer.Authenticate(keyStash, knownKeys)) {
-        McTally::Request  req(McTally::e_loadAverages);
-        if (peer.Send(req)) {
-          McTally::Response  response;
-          if (peer.Receive(response)) {
-            if (response.Req().ReqEnum() == McTally::e_loadAverages) {
-              auto const & loadAvgs =
-                std::get<McTally::LoadAvg>(response.Data());
-              cout << setiosflags(ios::left)
-                   << setw(31) << host << ' '
-                   << setprecision(4)
-                   << setw(6) << fixed << loadAvgs.Avg1Min() << ' '
-                   << setw(6) << fixed << loadAvgs.Avg5Min() << ' '
-                   << setw(6) << fixed << loadAvgs.Avg15Min() << '\n';
-              rc = true;
-            }
-          }
-          else {
-            cerr << "Failed to receive load averages from " << host << '\n';
-          }
-        }
-        else {
-          cerr << "Failed to send load averages request to " << host << '\n';
-        }
-      }
-      else {
-        cerr << "Authentication with " << host << " failed\n";
-      }
-    }
-    else {
-      cerr << "Failed to connect to " << host << '\n';
-    }
-  }
-  return rc;
+  return;
 }
 
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
-static bool ShowUname(string host)
+static void PrintResponse(const string & host, const McTally::Response & resp)
 {
-  bool            rc = false;
-  if (host.empty()) {
-    struct utsname  u;
-    memset(&u, 0, sizeof(u));
-    if (0 == uname(&u)) {
-      McTally::Uname  un(u);
-      cout << "sysname:    " << un.SysName() << '\n'
-           << "nodename:   " << un.NodeName() << '\n'
-           << "release:    " << un.Release() << '\n'
-           << "version:    " << un.Version() << '\n'
-           << "machine:    " << un.Machine() << '\n'
-           << "prettyname: " << un.PrettyName() << '\n';
-      rc = true;
-    }
-    else {
-      cerr << "uname() failed\n";
-    }
+  if (resp.Req().ReqEnum() == McTally::e_installedPackages) {
+    PrintInstalledPackages(host, resp);
   }
-  else {
-    Credence::Peer  peer;
-    if (peer.Connect(host, 2125)) {
-      Credence::KeyStash   keyStash;
-      Credence::KnownKeys  knownKeys;
-      if (peer.Authenticate(keyStash, knownKeys)) {
-        McTally::Request  req(McTally::e_uname);
-        if (peer.Send(req)) {
-          McTally::Response  response;
-          if (peer.Receive(response)) {
-            if (response.Req().ReqEnum() == McTally::e_uname) {
-              auto const & un =
-                std::get<McTally::Uname>(response.Data());
-              cout << "sysname:    " << un.SysName() << '\n'
-                   << "nodename:   " << un.NodeName() << '\n'
-                   << "release:    " << un.Release() << '\n'
-                   << "version:    " << un.Version() << '\n'
-                   << "machine:    " << un.Machine() << '\n'
-                   << "prettyname: " << un.PrettyName() << '\n';
-              rc = true;
-            }
-          }
-          else {
-            cerr << "Failed to receive uname from " << host << '\n';
-          }
-        }
-        else {
-          cerr << "Failed to send uname request to " << host << '\n';
+  else if (resp.Req().ReqEnum() == McTally::e_uname) {
+    PrintUname(host, resp);
+  }
+  else if (resp.Req().ReqEnum() == McTally::e_logins) {
+    PrintLogins(host, resp);
+  }
+  else if (resp.Req().ReqEnum() == McTally::e_loadAverages) {
+    PrintLoadAverages(host, resp);
+  }
+  return;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+static void PrintResponses(const string & host,
+                           const vector<McTally::Response> & responses)
+{
+  for (const auto & resp : responses) {
+    PrintResponse(host, resp);
+  }
+  return;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
+static bool SendReceive(Credence::Peer & peer,
+                        const vector<McTally::Request> & requests,
+                        vector<McTally::Response> & responses)
+{
+  bool  rc = false;
+  responses.clear();
+  for (const auto & req : requests) {
+    if (peer.Send(req)) {
+      McTally::Response  resp;
+      if (peer.Receive(resp)) {
+        if (resp.Req().ReqEnum() == req.ReqEnum()) {
+          responses.push_back(resp);
         }
       }
-      else {
-        cerr << "Authentication with " << host << " failed\n";
-      }
-    }
-    else {
-      cerr << "Failed to connect to " << host << '\n';
     }
   }
-  return rc;
+          
+  return (requests.size() == responses.size());
 }
 
 //----------------------------------------------------------------------------
@@ -333,15 +247,19 @@ static bool ShowUname(string host)
 //----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-  vector<string>  hosts;
-  bool            getUname = false, getLogins = false, getLoadAverages = false;
-  extern int      optind;
-  int             optChar;
+  extern int                optind;
+  int                       optChar;
+  vector<string>            hosts;
+  vector<McTally::Request>  requests;
+  
+  Dwm::SysLogger::Open("mctally", LOG_PERROR, LOG_USER);
+  Dwm::SysLogger::MinimumPriority(LOG_ERR);
+  Dwm::SysLogger::ShowFileLocation(true);
 
   while ((optChar = getopt(argc, argv, "h:ula")) != -1) {
     switch (optChar) {
       case 'a':
-        getLoadAverages = true;
+        requests.push_back(McTally::Request(McTally::e_loadAverages));
         break;
       case 'h':
         {
@@ -352,90 +270,41 @@ int main(int argc, char *argv[])
         }
         break;
       case 'l':
-        getLogins = true;
+        requests.push_back(McTally::Request(McTally::e_logins));
         break;
       case 'u':
-        getUname = true;
+        requests.push_back(McTally::Request(McTally::e_uname));
         break;
       default:
         break;
     }
   }
 
-  if (getUname) {
-    if (hosts.empty()) {
-      if (! ShowUname("")) {
-        return 1;
-      }
-      cout << '\n';
-    }
-    else {
-      for (auto host : hosts) {
-        if (! ShowUname(host)) {
-          return 1;
-        }
-        cout << '\n';
-      }
-    }
-    return 0;
-  }
-
-  if (getLogins) {
-    if (hosts.empty()) {
-      if (! ShowLogins("")) {
-        return 1;
-      }
-    }
-    else {
-      for (auto host : hosts) {
-        if (! ShowLogins(host)) {
-          return 1;
-        }
-      }
-    }
-    return 0;
-  }
-
-  if (getLoadAverages) {
-    if (hosts.empty()) {
-      if (! ShowLoadAverages("")) {
-        return 1;
-      }
-    }
-    else {
-      for (auto host : hosts) {
-        if (! ShowLoadAverages(host)) {
-          return 1;
-        }
-      }
-    }
-    return 0;
-  }
-  
   vector<string>  regExps;
   for (int n = optind; n < argc; ++n) {
-    regExps.push_back(argv[n]);
-  }
-
-  if (! hosts.empty()) {
-    for (auto host : hosts) {
-      if (! ShowRemoteVersions(host, regExps.front())) {
-        return 1;
-      }
+    try {
+      regex  rgx(argv[n]);
+      requests.push_back(McTally::Request(McTally::PackageSelector(argv[n])));
     }
-    return 0;
-  }
-  else {
-    map<string,string>  pkgs;
-    McTally::Utils::GetInstalledVersions(regExps, pkgs);
-    if (! pkgs.empty()) {
-      for (const auto & pkg : pkgs) {
-        cout << pkg.first << ' ' << pkg.second << '\n';
-      }
-      return 0;
+    catch (...) {
+      cerr << "Bad regular expression '" << argv[n] << "'\n";
     }
   }
   
-  return 1;
+  if (hosts.empty()) {
+    hosts.push_back("localhost");
+  }
+  for (const auto & host : hosts) {
+    Credence::Peer  peer;
+    if (GetPeer(host, peer)) {
+      vector<McTally::Response>  responses;
+      if (SendReceive(peer, requests, responses)) {
+        PrintResponses(host, responses);
+      }
+      peer.Disconnect();
+    }
+  }
+  
+  return 0;
 }
 
