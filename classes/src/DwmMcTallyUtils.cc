@@ -49,6 +49,7 @@ extern "C" {
 #include <cctype>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 #include <iostream>
 #include <regex>
 
