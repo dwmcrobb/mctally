@@ -1,3 +1,9 @@
+2024-01-05  Daniel W. McRobb  <dwm@www.mcplex.net>
+
+	* tagged as mctally-0.1.6
+
+	* Added apps/mctalycgi for my own purposes.
+
 2024-01-04  Daniel McRobb  <dwm@spark.mcplex.net>
 
 	* apps/mctally/mctally.cc: Refactor very ugly code (reduced
