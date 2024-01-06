@@ -235,6 +235,7 @@ static void PrintResponse(const string & host, const McTally::Response & resp)
       PrintLogins(host, resp);
       break;
     case McTally::e_uptime:
+      PrintUptime(host, resp);
       break;
     default:
       break;

@@ -216,6 +216,21 @@ static void PrintLoadAverages(const string & host,
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
+static void PrintUptime(const string & host,
+                        const McTally::Response & resp)
+{
+  if (std::holds_alternative<uint64_t>(resp.Data())) {
+    auto uptime = std::get<uint64_t>(resp.Data());
+    cout << "  <tr><th colspan=2 class=tblsubhdr>uptime</th></tr>\n"
+        << "  <tr><td colspan=2 align=center><tt>"
+        << McTally::Utils::TimeIntervalString(uptime) << "</tt></td></tr>\n";
+  }
+  return;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
 static void PrintResponse(const string & host, const McTally::Response & resp)
 {
   switch (resp.Req().ReqEnum()) {
@@ -230,6 +245,9 @@ static void PrintResponse(const string & host, const McTally::Response & resp)
       break;
     case McTally::e_logins:
       PrintLogins(host, resp);
+      break;
+    case McTally::e_uptime:
+      PrintUptime(host, resp);
       break;
     default:
       break;
@@ -309,6 +327,7 @@ int main(int argc, char *argv[])
   };
   vector<McTally::Request>  requests = {
     McTally::Request(McTally::e_uname),
+    McTally::Request(McTally::e_uptime),
     McTally::Request(McTally::e_loadAverages),
     McTally::Request(McTally::e_logins),
     McTally::Request("net.mcplex.*|mcblock|mcloc|mcrover|mctally"
