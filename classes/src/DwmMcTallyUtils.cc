@@ -547,6 +547,32 @@ namespace Dwm {
 #endif
       return rc;
     }
+
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    string Utils::TimeIntervalString(uint64_t secs)
+    {
+      std::string  rc;
+      uint64_t     secsRemaining = secs;
+      uint64_t     days = secsRemaining / (24 * 3600);
+      if (days) {
+        rc += std::to_string(days) + 'd';
+        secsRemaining -= days * (24 * 3600);
+      }
+      uint64_t  hours = secsRemaining / 3600;
+      if (hours) {
+        rc += std::to_string(hours) + 'h';
+        secsRemaining -= hours * 3600;
+      }
+      uint64_t  minutes = secsRemaining / 60;
+      if (minutes) {
+        rc += std::to_string(minutes) + 'm';
+        secsRemaining -= minutes * 60;
+      }
+      rc += std::to_string(secsRemaining) + 's';
+      return rc;
+    }
     
   }  // namespace McTally
 

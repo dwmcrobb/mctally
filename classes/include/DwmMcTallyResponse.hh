@@ -66,7 +66,8 @@ namespace Dwm {
                      LoadAvg,
                      Uname,
                      InstalledPackages,
-                     Logins>;
+                     Logins,
+                     uint64_t>;
         
       Response();
       Response(const Response & response) = default;
@@ -94,6 +95,11 @@ namespace Dwm {
       //!  
       //----------------------------------------------------------------------
       Response(const Logins & logins);
+
+      //----------------------------------------------------------------------
+      //!  
+      //----------------------------------------------------------------------
+      Response(uint64_t uptime);
 
       //----------------------------------------------------------------------
       //!  

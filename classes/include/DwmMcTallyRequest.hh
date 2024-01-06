@@ -68,6 +68,7 @@ namespace Dwm {
       e_uname               = 2,
       e_loadAverages        = 3,
       e_logins              = 4,
+      e_uptime              = 5,
       e_buhBye              = 255
     };
 

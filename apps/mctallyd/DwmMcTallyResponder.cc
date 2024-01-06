@@ -195,8 +195,24 @@ namespace Dwm {
                _peer.Id().c_str());
       }
       return rc;
-  }
-  
+    }
+
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    bool Responder::SendUptime()
+    {
+      bool  rc = false;
+      uint64_t  uptime = Utils::GetUptime();
+      Response  response(uptime);
+      rc = _peer.Send(response);
+      if (! rc) {
+        Syslog(LOG_ERR, "Failed to send uptime to client %s",
+               _peer.Id().c_str());
+      }
+      return rc;
+    }
+    
     //------------------------------------------------------------------------
     //!  
     //------------------------------------------------------------------------
@@ -216,6 +232,9 @@ namespace Dwm {
           break;
         case e_logins:
           rc = SendLogins();
+          break;
+        case e_uptime:
+          rc = SendUptime();
           break;
         default:
           Syslog(LOG_ERR, "Invalid command %hhu from %s", req.ReqEnum(),

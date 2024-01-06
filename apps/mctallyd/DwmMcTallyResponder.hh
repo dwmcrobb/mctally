@@ -98,6 +98,7 @@ namespace Dwm {
       bool SendLoadAverages();
       bool SendLogins();
       bool SendUname();
+      bool SendUptime();
       void Run();
     };
     

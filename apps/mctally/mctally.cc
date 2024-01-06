@@ -206,6 +206,19 @@ static void PrintLoadAverages(const string & host,
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
+static void PrintUptime(const string & host, const McTally::Response & resp)
+{
+  if (std::holds_alternative<uint64_t>(resp.Data())) {
+    auto  uptime = std::get<uint64_t>(resp.Data());
+    cout << host << " uptime: "
+         << McTally::Utils::TimeIntervalString(uptime) << '\n';
+  }
+  return;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
 static void PrintResponse(const string & host, const McTally::Response & resp)
 {
   switch (resp.Req().ReqEnum()) {
@@ -220,6 +233,8 @@ static void PrintResponse(const string & host, const McTally::Response & resp)
       break;
     case McTally::e_logins:
       PrintLogins(host, resp);
+      break;
+    case McTally::e_uptime:
       break;
     default:
       break;
@@ -294,7 +309,7 @@ int main(int argc, char *argv[])
   Dwm::SysLogger::MinimumPriority(LOG_ERR);
   Dwm::SysLogger::ShowFileLocation(true);
 
-  while ((optChar = getopt(argc, argv, "h:ula")) != -1) {
+  while ((optChar = getopt(argc, argv, "h:ulat")) != -1) {
     switch (optChar) {
       case 'a':
         requests.push_back(McTally::Request(McTally::e_loadAverages));
@@ -309,6 +324,9 @@ int main(int argc, char *argv[])
         break;
       case 'l':
         requests.push_back(McTally::Request(McTally::e_logins));
+        break;
+      case 't':
+        requests.push_back(McTally::Request(McTally::e_uptime));
         break;
       case 'u':
         requests.push_back(McTally::Request(McTally::e_uname));

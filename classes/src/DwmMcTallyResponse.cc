@@ -72,7 +72,14 @@ namespace Dwm {
     Response::Response(const Logins & logins)
         : _request(e_logins), _data(logins)
     {}
-    
+
+    //------------------------------------------------------------------------
+    //!  
+    //------------------------------------------------------------------------
+    Response::Response(uint64_t uptime)
+        : _request(e_uptime), _data(uptime)
+    {}
+
     //------------------------------------------------------------------------
     std::istream & Response::Read(std::istream & is)
     {
@@ -109,6 +116,9 @@ namespace Dwm {
         case e_logins:
           j["data"] = std::get<Logins>(_data).ToJson();
           break;
+        case e_uptime:
+          j["data"] = std::get<uint64_t>(_data);
+          break;
         default:
           break;
       }
@@ -137,6 +147,16 @@ namespace Dwm {
               case e_logins:
                 rc = DataFromJson<Logins>(j, req);
                 break;
+              case e_uptime:
+               {
+                 auto  it = j.find("data");
+                 if ((j.end() != it) && it->is_number_integer()) {
+                   _request = req;
+                   _data = it->get<uint64_t>();
+                   rc = true;
+                 }
+               }
+               break;
               default:
                 break;
             }
