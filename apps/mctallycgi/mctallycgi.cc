@@ -323,7 +323,7 @@ int main(int argc, char *argv[])
   int                       optChar;
   vector<string>            hosts = {
     "ria",    "www",   "kiva", "grover", "lassie", "nomnom", "pi4e",
-    "snoopy", "spark", "thrip"
+    "snoopy", "spark", "thrip", "toto"
   };
   vector<McTally::Request>  requests = {
     McTally::Request(McTally::e_uname),
