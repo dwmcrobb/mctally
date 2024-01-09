@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
     McTally::Request(McTally::e_uptime),
     McTally::Request(McTally::e_loadAverages),
     McTally::Request(McTally::e_logins),
-    McTally::Request("net.mcplex.*|mcblock|mcloc|mcrover|mctally"
+    McTally::Request("net.mcplex.*|mcblock|mcloc|mcrover|mctally|Mcweather"
                      "|DwmDns|libDwm.*")
   };
   
