@@ -1,7 +1,14 @@
+2024-01-27  Daniel McRobb  <dwm@spark.mcplex.net>
+
+	* tagged as mctally-0.1.8
+
+	* apps/mctallycgi/mctallycgi.cc: Added toto to list of hosts.
+	Added Mcweather to list of apps.
+
 2024-01-06  Daniel McRobb  <dwm@thrip.mcplex.net>
 
 	* tagged as mctally-0.1.7
-	
+
 	* Added uptime request/response.
 
 2024-01-05  Daniel W. McRobb  <dwm@www.mcplex.net>
