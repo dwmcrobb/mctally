@@ -37,9 +37,11 @@ deps/%_deps: %.cc
 	 sed 's/\($*\)\.o[ :]*/\1.o $(@D)\/$(@F) : /g' > $@ ; [ -s $@ ] || \
 	 rm -f $@
 
-#  only include dependency makefiles if target is not 'clean'
+#  only include dependency makefiles if target is not 'clean' or 'distclean'
 ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),distclean)
 -include ${OBJDEPS}
+endif
 endif
 
 %.o: %.cc deps/%_deps
@@ -55,4 +57,4 @@ clean::
 	${LIBTOOL} --mode=clean rm -f ${TESTS} ${OBJFILES}
 
 distclean:: clean
-	rm -f #{OBJDEPS}
+	rm -f ${OBJDEPS}

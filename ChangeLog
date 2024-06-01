@@ -1,3 +1,9 @@
+2024-06-01  Daniel W. McRobb  <dwm@kiva.mcplex.net>
+
+	* Makefile, apps/mctally/Makefile, apps/mctallycgi/Makefile:
+	apps/mctallyd/Makefile, classes/tests/Makefile: Fix up
+	'distclean' target.
+
 2024-01-27  Daniel McRobb  <dwm@spark.mcplex.net>
 
 	* tagged as mctally-0.1.8

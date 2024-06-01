@@ -24,7 +24,9 @@ deps/%_deps: %.cc
 
 #  only include dependency makefiles if target is not 'clean'
 ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),distclean)
 -include ${OBJDEPS}
+endif
 endif
 
 %.o: %.cc deps/%_deps
