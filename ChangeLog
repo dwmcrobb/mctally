@@ -1,3 +1,16 @@
+2024-07-26  Daniel W. McRobb  <dwm@spark.mcplex.net>
+
+	* tagged as mctally-0.1.10
+
+	* classes/include/DwmMcTallyInstalledPackages.hh
+	* classes/include/DwmMcTallyLoadAvg.hh
+	* classes/include/DwmMcTallyLogins.hh
+	* classes/include/DwmMcTallyRequest.hh
+	* classes/include/DwmMcTallyResponse.hh
+	* classes/include/DwmMcTallyUname.hh
+
+	Don't need to inherit from StreamIOCapable with newer libDwm.
+
 2024-06-01  Daniel W. McRobb  <dwm@kiva.mcplex.net>
 
 	* tagged as mctally-0.1.9
