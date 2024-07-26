@@ -58,7 +58,6 @@ namespace Dwm {
     //!  Should encapsulate a response to a request.
     //------------------------------------------------------------------------
     class Response
-      : public StreamIOCapable
     {
     public:
       using VariantType =
@@ -119,12 +118,12 @@ namespace Dwm {
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
-      std::istream & Read(std::istream & is) override;
+      std::istream & Read(std::istream & is);
 
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
-      std::ostream & Write(std::ostream & os) const override;
+      std::ostream & Write(std::ostream & os) const;
 
       nlohmann::json ToJson() const;
 

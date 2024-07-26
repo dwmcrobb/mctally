@@ -58,7 +58,6 @@ namespace Dwm {
     //!  
     //------------------------------------------------------------------------
     class LoginEntry
-      : public StreamIOCapable
     {
     public:
       LoginEntry() = default;
@@ -135,12 +134,12 @@ namespace Dwm {
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
-      std::istream & Read(std::istream & is) override;
+      std::istream & Read(std::istream & is);
 
       //----------------------------------------------------------------------
       //!  
       //----------------------------------------------------------------------
-      std::ostream & Write(std::ostream & os) const override;
+      std::ostream & Write(std::ostream & os) const;
 
       //----------------------------------------------------------------------
       //!  
@@ -169,7 +168,6 @@ namespace Dwm {
     //!  
     //------------------------------------------------------------------------
     class Logins
-      : public StreamIOCapable
     {
     public:
       //----------------------------------------------------------------------
@@ -186,8 +184,8 @@ namespace Dwm {
 
       void SetFromUtmp();
       
-      std::istream & Read(std::istream & is) override;
-      std::ostream & Write(std::ostream & os) const override;
+      std::istream & Read(std::istream & is);
+      std::ostream & Write(std::ostream & os) const;
       nlohmann::json ToJson() const;
       bool FromJson(const nlohmann::json & j);
 
