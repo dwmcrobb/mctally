@@ -21,14 +21,14 @@ EchoOrExec () {
 	echo -e '\t'git commit -m \"Tagging as ${TAGNAME}\"
 	echo -e '\t'git push
 	echo -e '\t'git tag -a "${TAGNAME}" -m \"Tagged as ${TAGNAME}\"
-	echo -e '\t'git push --tags
+	echo -e '\t'git push --follow-tags
     else
 	echo ${TAGNAME} > latest_release
 	git add latest_release
 	git commit -m "Tagging as ${TAGNAME}"
 	git push
 	git tag -a "${TAGNAME}" -m "Tagged as ${TAGNAME}"
-	git push --tags
+	git push --follow-tags
     fi
 }
 
