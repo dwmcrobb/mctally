@@ -1,6 +1,12 @@
 2024-07-26  Daniel W. McRobb  <dwm@spark.mcplex.net>
 
-	* apps/mctally/mctally.cc: Add usage statement.
+	* tagged as mctally-0.1.11
+
+	* docs/man: Added manpages for mctally and mctallyd.
+
+	* apps/mctally/mctally.cc: Add usage statement.  Allow port number
+	to be specified on command line.  Print error on cerr if we fail
+	to connect, authenticate, send or receive.
 
 	* tagged as mctally-0.1.10
 
