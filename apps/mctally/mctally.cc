@@ -315,13 +315,14 @@ static void PeerThread(string host, uint16_t port,
 static void Usage(const char *argv0)
 {
   cerr << "usage: " << argv0
-       << " [-h host(s)] [-p port] [-a] [-l] [-t] [-u]\n"
+       << " [-h host(s)] [-p port] [-a] [-l] [-t] [-u] [packages_regex]\n"
        << "  -a: show load averages\n"
        << "  -l: show active logins\n"
        << "  -p port: connect to the given port (default 2125)\n"
        << "  -t: show uptime\n"
        << "  -u: show uname\n"
-       << "  -h hosts: specify hosts to query (comma-separated list).\n";
+       << "  -h hosts: specify hosts to query (comma-separated list)\n"
+       << "  packages_regex: regular expression to match installed packages\n";
   return;
 }
 
