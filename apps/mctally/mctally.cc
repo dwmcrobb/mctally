@@ -86,10 +86,10 @@ static vector<string> SplitArg(const string & arg)
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
-static bool GetPeer(const string & host, Credence::Peer & peer)
+static bool GetPeer(const string & host, uint16_t port, Credence::Peer & peer)
 {
   bool  rc = false;
-  if (peer.Connect(host, 2125)) {
+  if (peer.Connect(host, port)) {
     Credence::KeyStash   keyStash;
     Credence::KnownKeys  knownKeys;
     if (peer.Authenticate(keyStash, knownKeys)) {
@@ -97,7 +97,11 @@ static bool GetPeer(const string & host, Credence::Peer & peer)
     }
     else {
       peer.Disconnect();
+      cerr << "Failed to authenticate with " << host << ':' << port << '\n';
     }
+  }
+  else {
+    cerr << "Failed to connect to " << host << ':' << port << '\n';
   }
   return rc;
 }
@@ -275,6 +279,13 @@ static bool SendReceive(Credence::Peer & peer,
           responses.push_back(resp);
         }
       }
+      else {
+        cerr << "Failed to receive response from " << peer.EndPointString()
+             << '\n';
+      }
+    }
+    else {
+      cerr << "Failed to send request to " << peer.EndPointString() << '\n';
     }
   }
           
@@ -284,10 +295,11 @@ static bool SendReceive(Credence::Peer & peer,
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
-static void PeerThread(string host, const vector<McTally::Request> & requests)
+static void PeerThread(string host, uint16_t port,
+                       const vector<McTally::Request> & requests)
 {
   Credence::Peer  peer;
-  if (GetPeer(host, peer)) {
+  if (GetPeer(host, port, peer)) {
     vector<McTally::Response>  responses;
     if (SendReceive(peer, requests, responses)) {
       PrintResponses(host, responses);
@@ -302,9 +314,11 @@ static void PeerThread(string host, const vector<McTally::Request> & requests)
 //----------------------------------------------------------------------------
 static void Usage(const char *argv0)
 {
-  cerr << "usage: " << argv0 << " [-h host(s)] [-a] [-l] [-t] [-u]\n"
+  cerr << "usage: " << argv0
+       << " [-h host(s)] [-p port] [-a] [-l] [-t] [-u]\n"
        << "  -a: show load averages\n"
        << "  -l: show active logins\n"
+       << "  -p port: connect to the given port (default 2125)\n"
        << "  -t: show uptime\n"
        << "  -u: show uname\n"
        << "  -h hosts: specify hosts to query (comma-separated list).\n";
@@ -319,13 +333,14 @@ int main(int argc, char *argv[])
   extern int                optind;
   int                       optChar;
   vector<string>            hosts;
+  uint16_t                  port = 2125;
   vector<McTally::Request>  requests;
   
   Dwm::SysLogger::Open("mctally", LOG_PERROR, LOG_USER);
   Dwm::SysLogger::MinimumPriority(LOG_ERR);
   Dwm::SysLogger::ShowFileLocation(true);
 
-  while ((optChar = getopt(argc, argv, "h:ulat")) != -1) {
+  while ((optChar = getopt(argc, argv, "h:p:ulat")) != -1) {
     switch (optChar) {
       case 'a':
         requests.push_back(McTally::Request(McTally::e_loadAverages));
@@ -337,6 +352,9 @@ int main(int argc, char *argv[])
             hosts.push_back(newhost);
           }
         }
+        break;
+      case 'p':
+        port = std::stoul(optarg);
         break;
       case 'l':
         requests.push_back(McTally::Request(McTally::e_logins));
@@ -377,7 +395,8 @@ int main(int argc, char *argv[])
   
   vector<std::thread>  peerThreads;
   for (const auto & host : hosts) {
-    peerThreads.emplace_back(thread(PeerThread, host, std::ref(requests)));
+    peerThreads.emplace_back(thread(PeerThread, host, port,
+                                    std::ref(requests)));
   }
   for (auto & peerThread : peerThreads) {
     peerThread.join();
