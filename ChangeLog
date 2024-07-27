@@ -1,5 +1,7 @@
 2024-07-26  Daniel W. McRobb  <dwm@spark.mcplex.net>
 
+	* apps/mctally/mctally.cc: Add usage statement.
+
 	* tagged as mctally-0.1.10
 
 	* classes/include/DwmMcTallyInstalledPackages.hh
