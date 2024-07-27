@@ -1,0 +1,77 @@
+.Dd January 2, 2024
+.Dt mctally 1
+.Os mcplex.net
+.Sh NAME
+.Nm mctally
+.Nd request list of installed packages matching a regular expression
+.Sh SYNOPSIS
+.Nm
+.Op Fl h Ar host(s)
+.Op Fl a
+.Op Fl l
+.Op Fl p Ar port
+.Op Fl t
+.Op Fl u
+.Op packages_regex
+.Sh DESCRIPTION
+.Nm
+requests installed package information from one or more hosts via
+.Xr mctallyd 8 .
+It can also request load averages, active logins, uptime and uname
+information.
+.Pp
+The following command line options are available:
+.Pp
+.Bl -tag -width indent
+.It Fl h Ar host(s)
+Specify the
+.Xr mctallyd 8
+host(s) to be queried.  If not specified, localhost is queried.
+.It Fl a
+Request load averages.
+.It Fl l
+Request active logins.
+.It Fl p Ar port
+Specify the TCP port where
+.Xr mctallyd 8
+is listening.
+.It Fl t
+Request uptime.
+.It Fl u
+Request uname information.
+.It packages_regex
+Request a list of installed packages whose name matches \fIpackages_regex\fR.
+\fIpackages_regex\fR is an ECMAScript regular expression.
+.El
+.Sh FILES
+.Nm
+uses libCredence for encryption and authentication.  Hence it
+requires credence key files.
+.Bl -tag -width indent
+.It Pa ~/.credence/id_ed25519
+The user's credence private key file, created with
+.Xr credence 1 .  This file should be owned by the user and have
+permissions 0600.  It must contain the private part of an Ed25519
+RSA key pair.
+.It Pa ~/.credence/id_ed25519.pub
+The user's credence public key file, created with
+.Xr credence 1 .  This file should be owned by the user and have
+permissions 0600.  It must contain the public part of an Ed25519 key pair.
+.It Pa ~/.credence/known_keys
+The user's credence known services file.  This file must contain the public
+keys of
+.Xr mctallyd 8
+from the
+.Xr mctallyd 8
+hosts being queried (one per line).  It is used to authenticate instances
+of
+.Xr mctallyd 8 .
+.El
+.Sh SEE ALSO
+.Xr mctallyd 8 ,
+.Xr credence 1
+.Sh COPYRIGHT
+Copyright (c) 2024 Daniel W. McRobb
+.Mt dwm@mcplex.net
+.Pp
+

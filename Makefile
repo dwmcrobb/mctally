@@ -11,9 +11,7 @@ classes/lib/libDwmMcTally.la::
 tarprep:: classes/lib/libDwmMcTally.la apps
 	${MAKE} -C classes $@
 	${MAKE} -C apps $@
-ifeq ("${BUILD_DOCS}", "yes")
-	${MAKE} -C doc $@
-endif
+	${MAKE} -C docs $@
 	${MAKE} -C etc $@
 	${MAKE} -C packaging $@
 
