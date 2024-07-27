@@ -1,7 +1,7 @@
 //===========================================================================
 // @(#) $DwmPath$
 //===========================================================================
-//  Copyright (c) Daniel W. McRobb 2023
+//  Copyright (c) Daniel W. McRobb 2023, 2024
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@
 //---------------------------------------------------------------------------
 //!  \file DwmMcTallyResponder.hh
 //!  \author Daniel W. McRobb
-//!  \brief NOT YET DOCUMENTED
+//!  \brief Dwm::McTally::Responder class declaration
 //---------------------------------------------------------------------------
 
 #ifndef _DWMMCTALLYRESPONDER_HH_
