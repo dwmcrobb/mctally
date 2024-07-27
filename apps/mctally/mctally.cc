@@ -36,7 +36,8 @@
 //---------------------------------------------------------------------------
 //!  \file mctally.cc
 //!  \author Daniel W. McRobb
-//!  \brief NOT YET DOCUMENTED
+//!  \brief client program to show installed applications, uptime, uname,
+//!    load averages or active logins
 //---------------------------------------------------------------------------
 
 extern "C" {
@@ -119,7 +120,7 @@ static void PrintInstalledPackages(const string & host,
       cout << '\n';
     }
     else {
-      cout << "':\n";
+      cout << ":\n";
       for (const auto & pkg : installedPkgs.Pkgs()) {
         cout << "  " << pkg.first << ' ' << pkg.second << '\n';
       }
@@ -299,6 +300,20 @@ static void PeerThread(string host, const vector<McTally::Request> & requests)
 //----------------------------------------------------------------------------
 //!  
 //----------------------------------------------------------------------------
+static void Usage(const char *argv0)
+{
+  cerr << "usage: " << argv0 << " [-h host(s)] [-a] [-l] [-t] [-u]\n"
+       << "  -a: show load averages\n"
+       << "  -l: show active logins\n"
+       << "  -t: show uptime\n"
+       << "  -u: show uname\n"
+       << "  -h hosts: specify hosts to query (comma-separated list).\n";
+  return;
+}
+
+//----------------------------------------------------------------------------
+//!  
+//----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
   extern int                optind;
@@ -333,6 +348,8 @@ int main(int argc, char *argv[])
         requests.push_back(McTally::Request(McTally::e_uname));
         break;
       default:
+        Usage(argv[0]);
+        return 1;
         break;
     }
   }
@@ -353,6 +370,11 @@ int main(int argc, char *argv[])
     }
   }
 
+  if (requests.empty()) {
+    Usage(argv[0]);
+    return 1;
+  }
+  
   vector<std::thread>  peerThreads;
   for (const auto & host : hosts) {
     peerThreads.emplace_back(thread(PeerThread, host, std::ref(requests)));
@@ -360,18 +382,6 @@ int main(int argc, char *argv[])
   for (auto & peerThread : peerThreads) {
     peerThread.join();
   }
-  
-#if 0
-    Credence::Peer  peer;
-    if (GetPeer(host, peer)) {
-      vector<McTally::Response>  responses;
-      if (SendReceive(peer, requests, responses)) {
-        PrintResponses(host, responses);
-      }
-      peer.Disconnect();
-    }
-  }
-#endif
   
   return 0;
 }
