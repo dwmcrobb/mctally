@@ -1,3 +1,7 @@
+2024-07-28  Daniel McRobb  <dwm@thrip.mcplex.net>
+
+	* tagged as mctally-0.1.12
+
 2024-07-28  Daniel W. McRobb  <dwm@spark.mcplex.net>
 
 	* docs/man/mctally.1: Document the -v command line option.
