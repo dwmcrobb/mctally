@@ -12,6 +12,7 @@
 .Op Fl p Ar port
 .Op Fl t
 .Op Fl u
+.Op Fl v
 .Op packages_regex
 .Sh DESCRIPTION
 .Nm
@@ -39,6 +40,8 @@ is listening.
 Request uptime.
 .It Fl u
 Request uname information.
+.It Fl v
+Display the version of mctally.
 .It packages_regex
 Request a list of installed packages whose name matches \fIpackages_regex\fR.
 \fIpackages_regex\fR is an ECMAScript regular expression.
