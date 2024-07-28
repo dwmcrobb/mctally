@@ -1,3 +1,9 @@
+2024-07-28  Daniel W. McRobb  <dwm@spark.mcplex.net>
+
+	* docs/man/mctally.1: Document the -v command line option.
+	* apps/mctally/mctally.cc: Added -v command line option to display
+	the version of mctally.
+
 2024-07-26  Daniel W. McRobb  <dwm@spark.mcplex.net>
 
 	* tagged as mctally-0.1.11
